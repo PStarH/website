@@ -584,7 +584,7 @@ function scrollToFirstThought() {
     }
 
     .greyhighlight {
-        background-color: rgba(21, 227, 162, 0.3);
+        background-color: rgba(227, 220, 21, 0.868);
         color: black;
         font-weight: bold;
         padding: 0 0.125rem;
@@ -597,7 +597,7 @@ function scrollToFirstThought() {
     display: inline-block;
     text-shadow: 1.875rem;
     font-style: italic;
-    background-color: rgb(211, 211, 211);
+    background-color: rgba(201, 236, 75, 0.347);
     opacity: 0.8;
     border-radius: 2.188rem;
     padding: 0.625 3.125rem;

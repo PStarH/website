@@ -13,7 +13,7 @@ import {
             <div class="time">Started from 2024-01-09</div>
             <n-row style="align-items: center;">
                 <n-col span="14">
-                    <div style="line-height: 24px;">The AppliedCS Club is dedicated to exploring the real-life
+                    <n-ellipsis expand-trigger="click" line-clamp="5" :tooltip="false">The AppliedCS Club is dedicated to exploring the real-life
                         applications of Computer Science across a wide range of disciplines. In the first semester, our
                         discussions span Philosophy, Mathematics, Sociology, Music, and more, focusing on how computing
                         principles and technologies intersect with and enhance these fields. In our meetings, we dive
@@ -26,7 +26,7 @@ import {
                         fostering a collaborative environment where creativity and critical thinking thrive. Each
                         meeting encourages members to contribute their unique perspectives, leading to a rich exchange
                         of ideas. Through these activities, we aim to not only understand the current state of Computer
-                        Science applications but also envision future possibilities and their societal impacts.</div>
+                        Science applications but also envision future possibilities and their societal impacts.</n-ellipsis>
                 </n-col>
                 <n-col span="6">
                     <n-image width="300" height="300" src="/website/images/wordcloud.png" />
