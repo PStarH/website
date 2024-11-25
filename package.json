@@ -9,14 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "lucide-vue-next": "^0.460.0",
-    "naive-ui": "^9.0.0",
     "vue": "^3.4.29",
     "vue-router": "^4.4.0",
     "vuex": "^4.0.2"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "lucide-vue-next": "^0.460.0",
     "less": "^4.2.0",
     "naive-ui": "^2.38.2",
     "typescript": "^5.2.2",
