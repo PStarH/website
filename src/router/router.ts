@@ -28,6 +28,11 @@ const routes: Array<RouteRecordRaw> = [
                         name: "projects-fireEscape",
                         component: () => store.state.display.isMobile ? import('../components/project/algorithms/mFireEscape.vue') : import('../components/project/algorithms/fireEscape.vue')
                     },
+                    {
+                        path: "reversi",
+                        name: "projects-reversi",
+                        component: () => store.state.display.isMobile ? import('../components/project/algorithms/mReversi.vue') : import('../components/project/algorithms/Reversi.vue')
+                    }
                 ]
             },
             {

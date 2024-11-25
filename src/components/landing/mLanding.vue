@@ -106,23 +106,19 @@ const gradientStyle = computed(() => ({
     <div class="projects-section">
       <h2 :style="gradientStyle">Projects I've Worked On</h2>
       <n-grid :cols="1" :x-gap="24" :y-gap="24">
-        <n-gi v-for="project in projects" :key="project.name">
-          <n-card class="project-card" @click="router.push({ name: project.routerKey })">
-            <template #header>
-              <h3>{{ project.name }}</h3>
-            </template>
-            <n-text :depth="3">
-              {{ project.description }}
-            </n-text>
-            <template #footer>
-              <n-button text>
-                Learn More
-                <template #icon>
-                  <n-icon :component="ChevronRight" />
-                </template>
-              </n-button>
-            </template>
-          </n-card>
+        <n-gi>
+          <div class="projectsCard" @click="router.push({ name: 'project' })">
+            <div class="project-title"><b>Explained Algorithms</b></div>
+            <div>
+              <n-text :depth="3">
+                Using real-life examples and actual Leetcode problems, I explain the algorithms and data structures in a
+                way
+                that is easy to understand and remember with implementation of the algorithm that can be viewed by the
+                user
+                visually.
+              </n-text>
+            </div>
+          </div>
         </n-gi>
       </n-grid>
     </div>

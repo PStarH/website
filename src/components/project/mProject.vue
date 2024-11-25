@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { projects, projectData } from './project';
-import { NBreadcrumb, NBreadcrumbItem, NLayout, NLayoutContent, NLayoutHeader, NGrid, NGi, NImage, NStatistic, NRow, NCol } from 'naive-ui';
+import { NBreadcrumb, NBreadcrumbItem, NLayout, NLayoutContent, NLayoutHeader, NGrid, NGi, NImage, NStatistic, NText, NRow, NCol } from 'naive-ui';
 import router from "../../router/router"
 import { ref } from 'vue';
 const project = ref<projectData | null>(null);
@@ -27,10 +27,11 @@ function initial() {
     </div>
 </template>
 
-
 <style>
 .lout {
     padding-top: 10px;
+    padding-right: 100px;
+    padding-left: 100px;
 }
 
 .subHead {

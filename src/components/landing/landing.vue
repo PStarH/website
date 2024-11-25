@@ -80,11 +80,13 @@ const gradientStyle = computed(() => ({
           <h1 class="name" :style="gradientStyle">Hello, I'm Xinghan Pan!</h1>
           <div class="role-container">
             <span class="role">I'm a </span>
-            <span class="typed-role">{{ typedText }}<span class="cursor" :class="{ 'cursor-visible': showCursor }">|</span></span>
+            <span class="typed-role">{{ typedText }}<span class="cursor"
+                :class="{ 'cursor-visible': showCursor }">|</span></span>
           </div>
           <p class="description">
             Currently studying at Shenzhen College of International Education, I'm a passionate computer science student
-            dedicated to learning algorithms and exploring the frontiers of artificial intelligence. My drive to innovate
+            dedicated to learning algorithms and exploring the frontiers of artificial intelligence. My drive to
+            innovate
             in these fields makes me eager to contribute to and thrive in small but impactful projects.
           </p>
           <div class="skills">
@@ -109,23 +111,19 @@ const gradientStyle = computed(() => ({
     <div class="projects-section">
       <h2 :style="gradientStyle">Projects I've Worked On</h2>
       <n-grid :cols="2" :x-gap="24" :y-gap="24">
-        <n-gi v-for="project in projects" :key="project.name">
-          <n-card class="project-card" @click="router.push({ name: project.routerKey })">
-            <template #header>
-              <h3>{{ project.name }}</h3>
-            </template>
-            <n-text :depth="3">
-              {{ project.description }}
-            </n-text>
-            <template #footer>
-              <n-button text>
-                Learn More
-                <template #icon>
-                  <n-icon :component="ChevronRight" />
-                </template>
-              </n-button>
-            </template>
-          </n-card>
+        <n-gi>
+          <div class="projectsCard" @click="router.push({ name: 'project' })">
+            <div class="project-title"><b>Explained Algorithms</b></div>
+            <div>
+              <n-text :depth="3">
+                Using real-life examples and actual Leetcode problems, I explain the algorithms and data structures in a
+                way
+                that is easy to understand and remember with implementation of the algorithm that can be viewed by the
+                user
+                visually.
+              </n-text>
+            </div>
+          </div>
         </n-gi>
       </n-grid>
     </div>
@@ -179,9 +177,17 @@ const gradientStyle = computed(() => ({
 }
 
 @keyframes blink {
-  0% { opacity: 0; }
-  50% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
 
 .description {
@@ -218,11 +224,13 @@ const gradientStyle = computed(() => ({
   margin-bottom: 24px;
 }
 
-.project-card {
+.projectsCard {
+  border-radius: 12px;
+  padding: 24px;
   cursor: pointer;
-  transition: all 0.3s;
-  background-color: v-bind("isDarkMode ? 'rgba(45, 45, 68, 0.8)' : 'rgba(255, 255, 255, 0.8)'");
-  backdrop-filter: blur(10px);
+  transition: all 0.2s;
+  box-shadow: var(--boxShadow-light);
+  background-color: rgba(58, 51, 83, 0.9);
 }
 
 .project-card:hover {
@@ -256,4 +264,3 @@ const gradientStyle = computed(() => ({
   }
 }
 </style>
-
