@@ -9,22 +9,346 @@ import {
   NCard,
   NButton,
   NDivider,
+  NIcon,
+  NTooltip
 } from 'naive-ui'
 import { ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { projects } from '../project/project'
 
 const router = useRouter()
-const roles = ref(['Full-stack Developer', 'AI Enthusiast', 'Data Analyst'])
+const roles = ref(['Full-stack Developer', 'AI Enthusiast', 'Data Analyst', 'NLP Developer', 'Creative Coder', 'Algorithm Designer', 'Automation Guru'])
 const currentRoleIndex = ref(0)
 const typedText = ref('')
 const showCursor = ref(true)
 const isDarkMode = inject('isDarkMode', ref(true))
 
-const skills = [
-  { name: 'Full-stack Development', type: 'success', icon: 'code' },
-  { name: 'Artificial Intelligence', type: 'info', icon: 'brain' },
-  { name: 'Data Analysis', type: 'warning', icon: 'bar-chart' },
+const skills = ref([
+  { name: 'Full-stack Developer', type: 'info' },
+  { name: 'AI Enthusiast', type: 'success' },
+  { name: 'Data Analyst', type: 'warning' },
+  { name: 'Innovator', type: 'primary' }
+])
+
+const techStack = [
+  // Frontend Core & UI Frameworks
+  {
+    name: 'Vue.js',
+    icon: 'logos:vue',
+    category: 'frontend'
+  },
+  {
+    name: 'React',
+    icon: 'logos:react',
+    category: 'frontend'
+  },
+  {
+    name: 'Next.js',
+    icon: 'logos:nextjs-icon',
+    category: 'frontend'
+  },
+  {
+    name: 'Nuxt.js',
+    icon: 'logos:nuxt-icon',
+    category: 'frontend'
+  },
+  {
+    name: 'TypeScript',
+    icon: 'logos:typescript-icon',
+    category: 'frontend'
+  },
+  {
+    name: 'JavaScript',
+    icon: 'logos:javascript',
+    category: 'frontend'
+  },
+
+  // UI Libraries
+  {
+    name: 'Tailwind CSS',
+    icon: 'logos:tailwindcss-icon',
+    category: 'frontend'
+  },
+  {
+    name: 'Naive UI',
+    icon: 'logos:naiveui',
+    category: 'frontend'
+  },
+  {
+    name: 'Element Plus',
+    icon: 'logos:element',
+    category: 'frontend'
+  },
+  {
+    name: 'Element UI',
+    icon: 'logos:element',
+    category: 'frontend'
+  },
+
+  // Frontend Tools
+  {
+    name: 'Vite',
+    icon: 'logos:vitejs',
+    category: 'frontend'
+  },
+  {
+    name: 'Vercel',
+    icon: 'logos:vercel-icon',
+    category: 'frontend'
+  },
+
+  // Backend
+  {
+    name: 'Node.js',
+    icon: 'logos:nodejs-icon',
+    category: 'backend'
+  },
+  {
+    name: 'Django',
+    icon: 'logos:django-icon',
+    category: 'backend'
+  },
+  {
+    name: 'FastAPI',
+    icon: 'simple-icons:fastapi',
+    category: 'backend'
+  },
+  {
+    name: 'Flask',
+    icon: 'logos:flask',
+    category: 'backend'
+  },
+  {
+    name: 'Spring Boot',
+    icon: 'logos:spring-icon',
+    category: 'backend'
+  },
+  {
+    name: '.NET Core',
+    icon: 'logos:dotnet',
+    category: 'backend'
+  },
+
+  // Databases
+  {
+    name: 'MongoDB',
+    icon: 'logos:mongodb-icon',
+    category: 'database'
+  },
+  {
+    name: 'MySQL',
+    icon: 'logos:mysql',
+    category: 'database'
+  },
+  {
+    name: 'SQLite',
+    icon: 'logos:sqlite',
+    category: 'database'
+  },
+  {
+    name: 'Redis',
+    icon: 'logos:redis',
+    category: 'database'
+  },
+  {
+    name: 'Elasticsearch',
+    icon: 'logos:elasticsearch',
+    category: 'database'
+  },
+
+  // DevOps & Cloud
+  {
+    name: 'Docker',
+    icon: 'logos:docker-icon',
+    category: 'devops'
+  },
+  {
+    name: 'Git',
+    icon: 'logos:git-icon',
+    category: 'devops'
+  },
+  {
+    name: 'GitHub Actions',
+    icon: 'logos:github-actions',
+    category: 'devops'
+  },
+  {
+    name: 'Azure',
+    icon: 'logos:microsoft-azure',
+    category: 'devops'
+  },
+  {
+    name: 'Alibaba Cloud',
+    icon: 'simple-icons:alibabacloud',
+    category: 'devops'
+  },
+  {
+    name: 'Nginx',
+    icon: 'logos:nginx',
+    category: 'devops'
+  },
+
+  // Development Tools
+  {
+    name: 'VS Code',
+    icon: 'logos:visual-studio-code',
+    category: 'tools'
+  },
+  {
+    name: 'PyCharm',
+    icon: 'logos:pycharm',
+    category: 'tools'
+  },
+  {
+    name: 'CLion',
+    icon: 'logos:clion',
+    category: 'tools'
+  },
+  {
+    name: 'DataSpell',
+    icon: 'logos:dataspell',
+    category: 'tools'
+  },
+  {
+    name: 'DataGrip',
+    icon: 'logos:datagrip',
+    category: 'tools'
+  },
+  {
+    name: 'Postman',
+    icon: 'logos:postman-icon',
+    category: 'tools'
+  },
+  // Programming Languages
+  {
+    name: 'Python',
+    icon: 'logos:python',
+    category: 'language'
+  },
+  {
+    name: 'Java',
+    icon: 'logos:java',
+    category: 'language'
+  },
+  {
+    name: 'C++',
+    icon: 'logos:c-plusplus',
+    category: 'language'
+  },
+  {
+    name: 'C#',
+    icon: 'logos:c-sharp',
+    category: 'language'
+  },
+  {
+    name: 'Rust',
+    icon: 'logos:rust',
+    category: 'language'
+  },
+  {
+    name: 'Selenium',
+    icon: 'logos:selenium',
+    category: 'testing'
+  },
+
+  // Data Science & AI
+  {
+    name: 'TensorFlow',
+    icon: 'logos:tensorflow',
+    category: 'ai'
+  },
+  {
+    name: 'PyTorch',
+    icon: 'logos:pytorch-icon',
+    category: 'ai'
+  },
+  {
+    name: 'Scikit-learn',
+    icon: 'vscode-icons:file-type-python',
+    category: 'ai'
+  },
+  {
+    name: 'OpenAI',
+    icon: 'simple-icons:openai',
+    category: 'ai'
+  },
+  {
+    name: 'Anthropic',
+    icon: 'logos:anthropic',
+    category: 'ai'
+  },
+  {
+    name: 'Hugging Face',
+    icon: 'simple-icons:huggingface',
+    category: 'ai'
+  },
+  {
+    name: 'LangChain',
+    icon: 'ph:robot-bold',
+    category: 'ai'
+  },
+  {
+    name: 'CUDA',
+    icon: 'simple-icons:nvidia',
+    category: 'ai'
+  },
+  {
+    name: 'MLflow',
+    icon: 'simple-icons:mlflow',
+    category: 'ai'
+  },
+
+  // Data Engineering & Analytics
+  {
+    name: 'Pandas',
+    icon: 'simple-icons:pandas',
+    category: 'data'
+  },
+  {
+    name: 'NumPy',
+    icon: 'logos:numpy',
+    category: 'data'
+  },
+  {
+    name: 'Jupyter',
+    icon: 'logos:jupyter',
+    category: 'data'
+  },
+
+  // Development Tools
+  {
+    name: 'Xcode',
+    icon: 'logos:xcode',
+    category: 'tools'
+  },
+  {
+    name: 'Android Studio',
+    icon: 'logos:android-icon',
+    category: 'tools'
+  },
+
+  // Data Science & Tools
+  {
+    name: 'Anaconda',
+    icon: 'simple-icons:anaconda',
+    category: 'data'
+  },
+
+  // AI Tools
+  {
+    name: 'Ollama',
+    icon: 'carbon:machine-learning',
+    category: 'ai'
+  },
+
+]
+
+const categories = [
+  { name: 'Frontend & UI', id: 'frontend' },
+  { name: 'Backend & Databases', id: ['backend', 'database'] },
+  { name: 'DevOps & Tools', id: ['devops', 'tools'] },
+  { name: 'Languages & Testing', id: ['language', 'testing'] },
+  { name: 'AI, ML & Data', id: ['ai', 'data'] }
 ]
 
 onMounted(() => {
@@ -89,14 +413,6 @@ const gradientStyle = computed(() => ({
             innovate
             in these fields makes me eager to contribute to and thrive in small but impactful projects.
           </p>
-          <div class="skills">
-            <n-tag v-for="skill in skills" :key="skill.name" :type="skill.type" class="skill-tag">
-              <template #icon>
-                <n-icon :component="ChevronRight" />
-              </template>
-              {{ skill.name }}
-            </n-tag>
-          </div>
         </div>
       </n-gi>
       <n-gi :span="8">
@@ -105,7 +421,12 @@ const gradientStyle = computed(() => ({
         </n-flex>
       </n-gi>
     </n-grid>
-
+    <n-tag v-for="skill in skills" :key="skill.name" :type="skill.type" class="skill-tag">
+      <template #icon>
+        <n-icon :component="ChevronRight" />
+      </template>
+      {{ skill.name }}
+    </n-tag>
     <n-divider />
 
     <div class="projects-section">
@@ -126,6 +447,30 @@ const gradientStyle = computed(() => ({
           </div>
         </n-gi>
       </n-grid>
+    </div>
+    <n-divider></n-divider>
+    <div class="tech-stack">
+      <h1 :style="gradientStyle">Tech Stack</h1>
+      <div class="tech-categories">
+        <div v-for="category in categories" :key="category.id" class="category-section">
+          <h4 class="category-title">{{ category.name }}</h4>
+          <div class="tech-icons">
+            <n-tooltip v-for="tech in techStack.filter(t =>
+              Array.isArray(category.id)
+                ? category.id.includes(t.category)
+                : t.category === category.id
+            )" :key="tech.name" :trigger="'hover'" :placement="'top'">
+              <template #trigger>
+                <div class="tech-icon">
+                  <img :src="`https://api.iconify.design/${tech.icon.replace(':', '/')}.svg`" :alt="tech.name"
+                    class="tech-icon-img" />
+                </div>
+              </template>
+              {{ tech.name }}
+            </n-tooltip>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -238,6 +583,72 @@ const gradientStyle = computed(() => ({
   box-shadow: v-bind("isDarkMode ? '0 4px 12px rgba(255, 255, 255, 0.1)' : '0 4px 12px rgba(0, 0, 0, 0.1)'");
 }
 
+.tech-stack {
+  margin-bottom: 24px;
+}
+
+.tech-stack h3 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  background: linear-gradient(90deg, #008CFF, #FF4D6D);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.tech-categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.category-section {
+  background-color: v-bind("isDarkMode ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)'");
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.category-title {
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: v-bind("isDarkMode ? '#e0e0e0' : '#333333'");
+}
+
+.tech-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.tech-icon {
+  width: 28px;
+  height: 28px;
+  padding: 5px;
+  border-radius: 6px;
+  background-color: v-bind("isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)'");
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.tech-icon:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tech-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: none;
+}
+
+:root[class='dark'] .tech-icon-img {
+  filter: brightness(0.95);
+}
+
 @media (max-width: 768px) {
   .homepage {
     padding: 24px 16px;
@@ -261,6 +672,24 @@ const gradientStyle = computed(() => ({
 
   .projects-section h2 {
     font-size: 28px;
+  }
+
+  .tech-categories {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  .tech-icons {
+    gap: 6px;
+  }
+
+  .tech-icon {
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+  }
+
+  .category-title {
+    font-size: 13px;
   }
 }
 </style>
