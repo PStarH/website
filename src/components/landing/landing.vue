@@ -52,16 +52,6 @@ const techStack = [
     icon: 'logos:nuxt-icon',
     category: 'frontend'
   },
-  {
-    name: 'TypeScript',
-    icon: 'logos:typescript-icon',
-    category: 'frontend'
-  },
-  {
-    name: 'JavaScript',
-    icon: 'logos:javascript',
-    category: 'frontend'
-  },
 
   // UI Libraries
   {
@@ -226,6 +216,16 @@ const techStack = [
     category: 'language'
   },
   {
+    name: 'TypeScript',
+    icon: 'logos:typescript-icon',
+    category: 'language'
+  },
+  {
+    name: 'JavaScript',
+    icon: 'logos:javascript',
+    category: 'language'
+  },
+  {
     name: 'Java',
     icon: 'logos:java',
     category: 'language'
@@ -338,6 +338,29 @@ const techStack = [
   {
     name: 'Ollama',
     icon: 'carbon:machine-learning',
+    category: 'ai'
+  },
+
+  // Programming Languages
+  {
+    name: 'HTML',
+    icon: 'logos:html-5',
+    category: 'language'
+  },
+  {
+    name: 'CSS',
+    icon: 'logos:css-3',
+    category: 'language'
+  },
+
+  // Data Science & AI
+  {name: 'spaCy',
+    icon: 'simple-icons:spacy',
+    category: 'ai'
+  },
+  {
+    name: 'OpenCV',
+    icon: 'simple-icons:opencv',
     category: 'ai'
   },
 
