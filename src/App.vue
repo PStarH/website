@@ -1,17 +1,20 @@
-<script setup lang="ts">
+<script setup>
 import {
   NConfigProvider,
   NDialogProvider,
   NMessageProvider
 } from 'naive-ui';
 import store from './store/store';
+import hljs from 'highlight.js/lib/core'
+import cpp from 'highlight.js/lib/languages/cpp'
 
-// 这里是用来判断用户是否正在使用移动端设备来访问我们的页面
+hljs.registerLanguage('cpp', cpp)
+
 store.state.display.isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase());
 
 const themeOverrides = {
   common: {
-    "primaryColor": "#4350FFFF", // 这里可以自定义主题色
+    "primaryColor": "#4350FFFF",
     "primaryColorHover": "#747EFEFF",
     "primaryColorPressed": "#182084FF",
     "primaryColorSuppl": "#3B44BEFF",
@@ -20,7 +23,7 @@ const themeOverrides = {
 </script>
 
 <template>
-  <n-config-provider :theme-overrides="themeOverrides">
+  <n-config-provider :theme-overrides="themeOverrides" :hljs="hljs">
     <n-dialog-provider>
       <n-message-provider>
         <div class="app">

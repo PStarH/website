@@ -1,16 +1,9 @@
 <script setup>
 import { projects } from './project';
+import { NBreadcrumb, NBreadcrumbItem, NLayout, NLayoutContent, NLayoutHeader, NGrid, NGi, NImage, NStatistic, NText, NRow, NCol } from 'naive-ui';
 import router from "../../router/router"
-import { ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
-
+import { ref } from 'vue';
 const project = ref(null);
-
-// Define the route using Composition API
-const route = useRoute();
-
-// Create a computed property for route name
-const routeName = computed(() => route.name);
 
 initial();
 
@@ -21,7 +14,8 @@ function initial() {
 
 <template>
     <div>
-        <div v-if="router.currentRoute.value.name.split('-')[1]" style="padding: 0 24px; margin: 0 auto">
+        <div v-if="(router.currentRoute.value.name).split('-')[1]"
+            style="max-width: 960px; padding: 0 24px; margin: 0 auto">
             <n-breadcrumb>
                 <n-breadcrumb-item @click="router.push({ name: 'project' })"> Project
                 </n-breadcrumb-item>

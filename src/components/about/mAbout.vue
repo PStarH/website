@@ -74,8 +74,6 @@ const highSchoolProgress = computed(() => {
 
 <style scoped lang="less">
 .n-layout {
-    padding-left: 200px;
-    padding-right: 200px;
-    padding-top: 25px;
+    padding: 1rem;
 }
 </style>
