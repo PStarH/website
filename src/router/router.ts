@@ -1,10 +1,10 @@
-import { createWebHistory, createRouter } from "vue-router";
+import { createWebHashHistory, createRouter } from "vue-router";
 import { RouteRecordRaw } from "vue-router";
 import store from "../store/store";
 
 const routes: Array<RouteRecordRaw> = [
     {
-        path: "/website",
+        path: "/",
         name: "website-layout",
         component: () => store.state.display.isMobile ? import('../components/mLayout.vue') : import('../components/layout.vue'),
         children: [
@@ -55,7 +55,7 @@ const routes: Array<RouteRecordRaw> = [
 ];
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHashHistory("/website/"),
     routes,
 });
 
