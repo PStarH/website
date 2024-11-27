@@ -428,7 +428,7 @@ const gradientStyle = computed(() => ({
       </n-gi>
       <n-gi :span="8">
         <n-flex :justify="'end'">
-          <n-avatar :size="289" :src="`/images/landingAvatar.jpg`" round class="avatar" />
+          <n-avatar :size="289" :src="`/website/images/landingAvatar.jpg`" round class="avatar" />
         </n-flex>
       </n-gi>
     </n-grid>

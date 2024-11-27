@@ -381,9 +381,9 @@ function scrollToFirstThought() {
                             empty,
                             i.e., all nodes have been visited.
                         </p>
-                        <div style="text-align: center"><n-image width="600" src="/images/BFSexplain.png"></n-image>
+                        <div style="text-align: center"><n-image width="600" src="/website/images/BFSexplain.png"></n-image>
                         </div>
-                        <div style="text-align: center;"><n-image width="400" lazy src="/images/bfs_demo.gif"></n-image>
+                        <div style="text-align: center;"><n-image width="400" lazy src="/website/images/bfs_demo.gif"></n-image>
                         </div>
                         <div style="text-align: center; padding-bottom: 0.156rem;"><b>BFS explanation</b></div>
                         <div>BFS can also work in <b class="greyhighlight">graph</b> rather than just grid. A graph is
@@ -398,7 +398,7 @@ function scrollToFirstThought() {
                         its time complexity is:<b
                             style="font-size: 1.375rem; font-weight: 2000; font-style: italic; font-family:serif;">O(V+E)</b>
                         (Vertices+Edges)
-                        <div style="text-align: center;"><n-image width="200" src="/images/graph.png"></n-image></div>
+                        <div style="text-align: center;"><n-image width="200" src="/website/images/graph.png"></n-image></div>
                     </div>
                     <div>
                         <div ref="bsSection" class="subTitle">What is Binary Search?</div>
@@ -449,7 +449,7 @@ function scrollToFirstThought() {
                         <div style="text-align: center;"><b>Imagine you need to find number 2 in an array -5 to 5</b>
                         </div>
                         <div style="text-align: center;"><n-image width="600" lazy
-                                src="/images/binarysearch.gif"></n-image>
+                                src="/website/images/binarysearch.gif"></n-image>
                         </div>
                         <div style="text-align: center; font-size: 1rem;"><b>Binary Search animation</b></div>
                     </div>
@@ -504,7 +504,7 @@ function scrollToFirstThought() {
                         </n-card>
                         <div style="display: flex; align-items: center;">
                             <n-statistic style="font-weight: bold; padding-right: 1.75rem;" label="Time Complexity"><img
-                                    style="width: 12.5rem;" src="/images/time_complexity.png" alt=""></n-statistic>
+                                    style="width: 12.5rem;" src="/website/images/time_complexity.png" alt=""></n-statistic>
                         </div>
                         <div><b>The following data came from Leetcode</b> </div>
                         <div style="display: flex; align-items: center;">

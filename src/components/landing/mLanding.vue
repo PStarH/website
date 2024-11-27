@@ -68,7 +68,7 @@ const gradientStyle = computed(() => ({
         <div class="intro">
           <h1 class="name" :style="gradientStyle">Hello, I'm Xinghan Pan!</h1>
           <n-flex :justify="'center'">
-            <n-avatar :size="289" :src="`/images/landingAvatar.jpg`" round class="avatar" />
+            <n-avatar :size="289" :src="`/website/images/landingAvatar.jpg`" round class="avatar" />
           </n-flex>
           <n-divider />
           <div class="role-container">

@@ -67,7 +67,7 @@
                         </div>
                     </div>
                     <div class="project-image">
-                        <n-image width="400" src="/images/example_1.png" alt="Example Project 1 Image"></n-image>
+                        <n-image width="400" src="/website/images/example_1.png" alt="Example Project 1 Image"></n-image>
                     </div>
                     <div class="project-stats">
                         <n-row>
@@ -106,7 +106,7 @@
                         </div>
                     </div>
                     <div class="project-image">
-                        <n-image width="400" src="/images/example_1.png" alt="Example Project 2 Image"></n-image>
+                        <n-image width="400" src="/website/images/example_1.png" alt="Example Project 2 Image"></n-image>
                     </div>
                     <div class="project-stats">
                         <n-row>

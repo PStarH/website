@@ -21,7 +21,7 @@
                 meeting encourages members to contribute their unique perspectives, leading to a rich exchange
                 of ideas. Through these activities, we aim to not only understand the current state of Computer
                 Science applications but also envision future possibilities and their societal impacts.</n-ellipsis>
-            <div style="text-align: center;"><n-image width="300" height="300" src="/images/wordcloud.png" /></div>
+            <div style="text-align: center;"><n-image width="300" height="300" src="/website/images/wordcloud.png" /></div>
             <div class="subheading">Student Council</div>
             <div class="time">Started from Grade 8</div>
             <div>
