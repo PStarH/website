@@ -1,11 +1,25 @@
+
 :root {
+  --journal-font-family: 'Times New Roman', Times, serif;
+  line-height: 1.5;
+  font-weight: 400;
+
   --boxShadow-regular: 0 2px 4px rgba(0, 0, 0, 0.12),
     0 0 6px rgba(0, 0, 0, 0.04);
   --boxShadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   --boxShadow-deep: 0 2px 12px 0 rgba(0, 0, 0, 0.3);
+
   color-scheme: light dark;
-  --john-locke-blue: rgb(13, 31, 78);
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+  --journal-blue: #2A34B9FF;
+  --hillib-blue: rgb(32, 38, 124);
+  --dsw-black-rgb: rgb(0, 0, 0);
   --wx-green-rgb: rgb(90, 183, 38);
+  --company-1-rgb: rgb(247, 181, 43, 1);
+  --company-2-rgb: rgb(241, 238, 121, 1);
+  --company-3-rgb: rgb(238, 217, 59, 1);
+  --pc-background-color: #f5f5f6;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -30,7 +44,7 @@
 
 .v-enter-active,
 .v-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease;
 }
 
 .v-enter-from,
