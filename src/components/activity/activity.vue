@@ -25,7 +25,7 @@
                         Science applications but also envision future possibilities and their societal impacts.</n-ellipsis>
                 </n-col>
                 <n-col span="6">
-                    <n-image width="300" height="300" src="/images/wordcloud.png" />
+                    <n-image width="300" height="300" src="/website/images/wordcloud.png" />
                 </n-col>
             </n-row>
             <div class="subheading">Student Council</div>
