@@ -140,6 +140,11 @@ const techStack = [
     category: 'devops'
   },
   {
+    name: 'Kubernetes',
+    icon: 'logos:kubernetes',
+    category: 'devops'
+  },
+  {
     name: 'Git',
     icon: 'logos:git-icon',
     category: 'devops'
