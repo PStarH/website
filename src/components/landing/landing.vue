@@ -169,6 +169,11 @@ const techStack = [
     icon: 'logos:nginx',
     category: 'devops'
   },
+  {
+    name: 'Sealos',
+    icon: 'logos:sealos',
+    category: 'devops'
+  },
 
   // Development Tools
   {
