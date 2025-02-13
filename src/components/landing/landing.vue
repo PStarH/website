@@ -81,6 +81,11 @@ const techStack = [
     category: 'backend'
   },
   {
+    name: 'Django',
+    icon: 'logos:django-icon',
+    category: 'backend'
+  },
+  {
     name: 'FastAPI',
     icon: 'simple-icons:fastapi',
     category: 'backend'
