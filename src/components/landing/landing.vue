@@ -77,7 +77,7 @@ function animateSkills() {
       skewX: -2,
       duration: 0.2, // 进一步加快冲击
       ease: 'power4.out',
-      delay: index * 0.5 + 0.8 // 大幅减少间隔和延迟
+      delay: index * 0.2 + 0.3 // 大幅减少间隔：从0.5秒改为0.2秒，初始延迟从0.8秒改为0.4秒
     })
 
       // 第二阶段：快速震动回弹
