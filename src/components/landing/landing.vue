@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, inject, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, inject, nextTick } from 'vue'
 import { ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { techStack, categories } from '../../data/techStack.js'
@@ -15,6 +15,7 @@ const typedText = ref('')
 const showCursor = ref(true)
 const isDarkMode = inject('isDarkMode', ref(true))
 const lastGitHubUpdate = ref(null)
+const isUsingFallbackData = ref(false)
 
 const skills = ref([
   { name: 'Full-stack Developer', type: 'info' },
@@ -35,7 +36,9 @@ const stats = ref([
   { label: 'Languages Used', value: '...', icon: '🛠️', type: 'github', key: 'languages' }
 ])
 
-const githubUsername = 'PStarH' // 请替换为您的GitHub用户名
+const githubUsername = 'PStarH' // Replace with your GitHub username
+const isFirstLoad = ref(true)
+let refreshInterval = null
 
 onMounted(() => {
   typeNextRole()
@@ -43,72 +46,142 @@ onMounted(() => {
     showCursor.value = !showCursor.value
   }, 500)
 
-  // 等待DOM渲染完成后执行动画
+  // Wait for DOM rendering to complete before executing animations
   nextTick(() => {
     animateSkills()
     setupSmoothScroll()
-    fetchGitHubStats() // 获取GitHub统计数据
+    // Clear any stale cache older than 24 hours on startup
+    clearStaleCache()
+    // Force fresh data on first load to ensure users see current data
+    fetchGitHubStats(true)
   })
 
-  // 每分钟更新一次时间显示文本
+  // Update time display text every minute
   setInterval(() => {
     if (lastGitHubUpdate.value) {
-      // 触发计算属性重新计算
+      // Trigger computed property recalculation
       lastGitHubUpdate.value = lastGitHubUpdate.value
     }
-  }, 60000) // 60秒更新一次时间显示
+  }, 60000) // Update time display every 60 seconds
 
-  // 每5分钟检查是否需要更新GitHub数据
-  setInterval(() => {
+  // Set up 5-minute refresh interval for GitHub data
+  refreshInterval = setInterval(() => {
     fetchGitHubStats()
-  }, 5 * 60 * 1000) // 5分钟
+  }, 5 * 60 * 1000) // 5 minutes
+})
+
+// Clean up intervals when component is unmounted
+onUnmounted(() => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval)
+  }
 })
 
 function setupSmoothScroll() {
-  // 设置GSAP ScrollTrigger的平滑滚动
+  // Setup GSAP ScrollTrigger smooth scrolling
   ScrollTrigger.create({
     trigger: ".content-sections",
     start: "top center",
     end: "bottom center",
     scrub: 1,
     onUpdate: (self) => {
-      // 可以在这里添加滚动时的动画效果
+      // Animation effects during scrolling can be added here
     }
   })
 }
 
-// 获取GitHub统计数据
-async function fetchGitHubStats() {
+// Clear stale cache data to ensure fresh experience
+function clearStaleCache() {
+  const cacheKey = `github-stats-${githubUsername}`
+  const cached = localStorage.getItem(cacheKey)
+  
+  if (cached) {
+    try {
+      const { timestamp } = JSON.parse(cached)
+      const hoursSinceCache = (Date.now() - timestamp) / (1000 * 60 * 60)
+      
+      // Clear cache if it's older than 24 hours
+      if (hoursSinceCache > 24) {
+        localStorage.removeItem(cacheKey)
+        console.log('Cleared stale GitHub cache (>24 hours old)')
+      }
+    } catch (error) {
+      // Clear invalid cache data
+      localStorage.removeItem(cacheKey)
+      console.log('Cleared invalid GitHub cache data')
+    }
+  }
+}
+
+// Get GitHub statistics data
+async function fetchGitHubStats(forceRefresh = false) {
   try {
-    // 检查缓存（5分钟有效期）
+    // Check cache (5-minute validity period)
     const cacheKey = `github-stats-${githubUsername}`
     const cached = localStorage.getItem(cacheKey)
-    if (cached) {
-      const { data, timestamp } = JSON.parse(cached)
-      lastGitHubUpdate.value = timestamp
-      if (Date.now() - timestamp < 5 * 60 * 1000) { // 5分钟缓存
-        updateStatsWithData(data)
-        return
+    
+    // On first load or force refresh, always fetch fresh data
+    // Otherwise, use cache if it's less than 5 minutes old
+    if (!forceRefresh && !isFirstLoad.value && cached) {
+      try {
+        const { data, timestamp, version } = JSON.parse(cached)
+        lastGitHubUpdate.value = timestamp
+        isUsingFallbackData.value = false
+        
+        // Check both time validity and cache version
+        if (Date.now() - timestamp < 5 * 60 * 1000 && version === '1.0') {
+          console.log('Using cached GitHub data')
+          updateStatsWithData(data)
+          return
+        }
+      } catch (error) {
+        // Invalid cache format, remove it
+        localStorage.removeItem(cacheKey)
+        console.log('Removed invalid cache format')
       }
     }
 
-    // 获取用户信息
+    // Mark first load as complete
+    if (isFirstLoad.value) {
+      isFirstLoad.value = false
+    }
+
+    // Fetch fresh data from GitHub API
+    console.log(forceRefresh ? 'Force refreshing GitHub data...' : 'Fetching fresh GitHub data...')
+    
+    // Get user information
     const userResponse = await fetch(`https://api.github.com/users/${githubUsername}`)
-    if (!userResponse.ok) throw new Error('Failed to fetch user data')
+    if (!userResponse.ok) {
+      if (userResponse.status === 403) {
+        console.warn('GitHub API rate limit exceeded, using cached data if available')
+        if (cached) {
+          try {
+            const { data, timestamp } = JSON.parse(cached)
+            lastGitHubUpdate.value = timestamp
+            isUsingFallbackData.value = false
+            updateStatsWithData(data, true)
+            return
+          } catch (error) {
+            console.warn('Could not parse cached data')
+          }
+        }
+      }
+      throw new Error(`Failed to fetch user data: ${userResponse.status}`)
+    }
     const userData = await userResponse.json()
 
-    // 获取仓库信息（分页获取，最多获取100个公开仓库）
+    // Get repository information (paginated, max 100 public repositories)
     const reposResponse = await fetch(`https://api.github.com/users/${githubUsername}/repos?per_page=100&type=public&sort=updated`)
     if (!reposResponse.ok) throw new Error('Failed to fetch repos data')
     const reposData = await reposResponse.json()
 
-    // 获取贡献数据（使用events API作为代理）
+    // Get contribution data (using events API as proxy)
     let contributions = 0
     try {
       const eventsResponse = await fetch(`https://api.github.com/users/${githubUsername}/events?per_page=100`)
       if (eventsResponse.ok) {
         const eventsData = await eventsResponse.json()
-        // 计算最近100个事件中的push事件数量作为贡献的估算
+        // Calculate push events count from recent 100 events as contribution estimate
         contributions = eventsData.filter(event => 
           event.type === 'PushEvent' || 
           event.type === 'CreateEvent' || 
@@ -119,43 +192,43 @@ async function fetchGitHubStats() {
       console.warn('Could not fetch contributions data:', error)
     }
 
-    // 获取语言数据和代码行数统计
+    // Get language data and lines of code statistics
     const languagesSet = new Set()
     let totalLinesOfCode = 0
     
-    // 筛选开源项目（排除fork的仓库，只计算原创项目）
+    // Filter open source projects (exclude forked repositories, only count original projects)
     const originalRepos = reposData.filter(repo => !repo.fork)
     const openSourceProjects = originalRepos.length
     
-    // 您参与的开源项目星数总和（手动统计的数据）
+    // Total stars from participated open source projects (manually counted data)
     const participatedProjectsStars = 110900 // 110.9K stars
     
     for (const repo of reposData) {
       if (repo.language) {
         languagesSet.add(repo.language)
       }
-      // 为了获取更详细的语言信息，我们可以获取每个仓库的语言统计
+      // To get more detailed language information, we can fetch language statistics for each repository
       try {
         const repoLangsResponse = await fetch(`https://api.github.com/repos/${githubUsername}/${repo.name}/languages`)
         if (repoLangsResponse.ok) {
           const repoLangs = await repoLangsResponse.json()
           Object.keys(repoLangs).forEach(lang => languagesSet.add(lang))
-          // 累计代码行数（GitHub API返回的是字节数，我们需要估算行数）
+          // Accumulate lines of code (GitHub API returns bytes, we need to estimate lines)
           totalLinesOfCode += Object.values(repoLangs).reduce((sum, bytes) => sum + bytes, 0)
         }
       } catch (error) {
-        // 忽略单个仓库的语言获取错误
+        // Ignore language fetching errors for individual repositories
       }
     }
 
-    // 将字节数转换为大概的代码行数（平均每行约30字节）
+    // Convert bytes to approximate lines of code (average ~30 bytes per line)
     const estimatedLinesOfCode = Math.round(totalLinesOfCode / 30)
 
-    // 计算统计数据
+    // Calculate statistics
     const publicRepos = userData.public_repos
     const totalStars = reposData.reduce((sum, repo) => sum + repo.stargazers_count, 0)
     const totalForks = reposData.reduce((sum, repo) => sum + repo.forks_count, 0)
-    const totalContributions = contributions > 0 ? contributions * 10 : 100 // 估算总贡献（乘以10作为近似）
+    const totalContributions = contributions > 0 ? contributions * 10 : 100 // Estimate total contributions (multiply by 10 as approximation)
     const totalLanguages = languagesSet.size
 
     const statsData = { 
@@ -169,34 +242,46 @@ async function fetchGitHubStats() {
       totalLanguages 
     }
     
-    // 缓存数据
+    // Cache data with version to ensure freshness
     const currentTimestamp = Date.now()
-    localStorage.setItem(cacheKey, JSON.stringify({
+    const cacheData = {
       data: statsData,
-      timestamp: currentTimestamp
-    }))
+      timestamp: currentTimestamp,
+      version: '1.0' // Version for cache invalidation if needed
+    }
+    localStorage.setItem(cacheKey, JSON.stringify(cacheData))
     
     lastGitHubUpdate.value = currentTimestamp
+    isUsingFallbackData.value = false
 
     updateStatsWithData(statsData)
+    console.log('GitHub data updated successfully')
 
   } catch (error) {
     console.error('Error fetching GitHub stats:', error)
-    // 如果API调用失败，使用fallback数据
-    updateStatsWithData({ 
-      publicRepos: 15, 
-      totalStars: 50, 
-      totalForks: 20, 
-      estimatedLinesOfCode: 25000,
-      openSourceProjects: 12,
+    // Use fallback data if API call fails
+    const fallbackData = { 
+      publicRepos: 29, 
+      totalStars: 160, 
+      totalForks: 9, 
+      estimatedLinesOfCode: 16790000,
+      openSourceProjects: 24,
       participatedProjectsStars: 110900,
-      totalContributions: 500, 
-      totalLanguages: 8 
-    }, true)
+      totalContributions: 120, 
+      totalLanguages: 22
+    }
+    updateStatsWithData(fallbackData, true)
+    
+    // Set fallback flag and don't set update timestamp for fallback data
+    isUsingFallbackData.value = true
+    // Only set timestamp if there's no previous valid timestamp
+    if (!lastGitHubUpdate.value) {
+      lastGitHubUpdate.value = null
+    }
   }
 }
 
-// 更新统计数据
+// Update statistics data
 function updateStatsWithData(data, isFallback = false) {
   const { publicRepos, totalStars, totalForks, estimatedLinesOfCode, openSourceProjects, participatedProjectsStars, totalContributions, totalLanguages } = data
   
@@ -204,36 +289,36 @@ function updateStatsWithData(data, isFallback = false) {
     if (stat.type === 'github') {
       switch (stat.key) {
         case 'repos':
-          return { ...stat, value: isFallback ? `${publicRepos}+` : publicRepos.toString() }
+          return { ...stat, value: publicRepos.toString() }
         case 'stars':
-          return { ...stat, value: isFallback ? `${totalStars}+` : totalStars.toString() }
+          return { ...stat, value: totalStars.toString() }
         case 'forks':
-          return { ...stat, value: isFallback ? `${totalForks}+` : totalForks.toString() }
+          return { ...stat, value: totalForks.toString() }
         case 'linesOfCode':
-          return { ...stat, value: isFallback ? `${Math.round(estimatedLinesOfCode/1000)}K+` : `${Math.round(estimatedLinesOfCode/1000)}K` }
+          return { ...stat, value: `${Math.round(estimatedLinesOfCode/1000)}K` }
         case 'openSourceProjects':
-          return { ...stat, value: isFallback ? `${openSourceProjects}+` : openSourceProjects.toString() }
+          return { ...stat, value: openSourceProjects.toString() }
         case 'contributions':
-          return { ...stat, value: isFallback ? `${totalContributions}+` : `${totalContributions}+` }
+          return { ...stat, value: `${totalContributions}+` }
         case 'languages':
-          return { ...stat, value: isFallback ? `${totalLanguages}+` : totalLanguages.toString() }
+          return { ...stat, value: totalLanguages.toString() }
         default:
           return stat
       }
     } else if (stat.type === 'static' && stat.key === 'participatedProjectsStars') {
-      // 处理静态的"Participated Projects Stars"
+      // Handle static "Participated Projects Stars"
       return { ...stat, value: `${Math.round(participatedProjectsStars/1000)}K` }
     }
     return stat
   })
 
-  // 添加动画效果
+  // Add animation effects
   nextTick(() => {
     animateStatsUpdate()
   })
 }
 
-// 统计数据更新动画
+// Statistics data update animation
 function animateStatsUpdate() {
   const statItems = document.querySelectorAll('.stat-value')
   statItems.forEach((item, index) => {
@@ -255,44 +340,44 @@ function animateStatsUpdate() {
 function animateSkills() {
   const tl = gsap.timeline()
 
-  // 初始化所有技能标签为不可见状态，从右边很远的地方开始
+  // Initialize all skill tags to invisible state, starting from far right
   gsap.set('.skill-tag', {
     opacity: 0,
-    x: 400, // 从更远的地方开始
+    x: 400, // Start from farther away
     scale: 0.2,
-    rotation: 35, // 更大的旋转角度
-    skewX: 20, // 更大的倾斜
+    rotation: 35, // Larger rotation angle
+    skewX: 20, // Larger skew
     transformOrigin: 'center center'
   })
 
-  // 为容器添加震动效果的准备
+  // Prepare container for vibration effects
   gsap.set('.skills-container', {
     transformOrigin: 'left center'
   })
 
-  // 创建紧凑高效的碰撞飞入动画（3秒内完成）
+  // Create compact and efficient collision animation (completed within 3 seconds)
   skills.value.forEach((skill, index) => {
-    // 第一阶段：高速冲击
+    // Stage 1: High-speed impact
     tl.to(`.skill-tag:nth-child(${index + 1})`, {
       opacity: 1,
-      x: -10, // 减少冲过头距离
-      scale: 1.3, // 撞击时放大
+      x: -10, // Reduce overshoot distance
+      scale: 1.3, // Scale up on impact
       rotation: -4,
       skewX: -2,
-      duration: 0.2, // 进一步加快冲击
+      duration: 0.2, // Further accelerate impact
       ease: 'power4.out',
-      delay: index * 0.2 + 0.3 // 大幅减少间隔：从0.5秒改为0.2秒，初始延迟从0.8秒改为0.4秒
+      delay: index * 0.2 + 0.3 // Greatly reduce interval: from 0.5s to 0.2s, initial delay from 0.8s to 0.4s
     })
 
-      // 第二阶段：快速震动回弹
+      // Stage 2: Quick vibration rebound
       .to(`.skill-tag:nth-child(${index + 1})`, {
-        x: 2, // 更小的反弹
+        x: 2, // Smaller rebound
         scale: 0.98,
         rotation: 0.5,
-        duration: 0.15, // 更快的震动
+        duration: 0.15, // Faster vibration
         ease: 'power2.inOut',
         onStart: function () {
-          // 简化震动效果
+          // Simplified vibration effect
           gsap.to('.skills-container', {
             x: index % 2 === 0 ? 3 : -3,
             duration: 0.02,
@@ -301,34 +386,34 @@ function animateSkills() {
             ease: 'power2.inOut'
           })
 
-          // 增强冲击波效果
+          // Enhanced shockwave effect
           gsap.fromTo(`.skill-tag:nth-child(${index + 1})`, {
             boxShadow: '0 0 0 0 rgba(0, 140, 255, 1), 0 0 0 0 rgba(255, 77, 109, 0.8)'
           }, {
-            boxShadow: '0 0 0 25px rgba(0, 140, 255, 0), 0 0 0 40px rgba(255, 77, 109, 0)', // 增大冲击波范围
-            duration: 0.4, // 延长持续时间
+            boxShadow: '0 0 0 25px rgba(0, 140, 255, 0), 0 0 0 40px rgba(255, 77, 109, 0)', // Increase shockwave range
+            duration: 0.4, // Extend duration
             ease: 'power2.out'
           })
         }
       })
 
-      // 第三阶段：快速稳定
+      // Stage 3: Quick stabilization
       .to(`.skill-tag:nth-child(${index + 1})`, {
         x: 0,
         scale: 1,
         rotation: 0,
         skewX: 0,
-        duration: 0.25, // 大幅缩短稳定时间
+        duration: 0.25, // Greatly shorten stabilization time
         ease: 'elastic.out(1.5, 0.6)',
         onComplete: function () {
-          // 立即恢复容器位置
+          // Immediately restore container position
           gsap.set('.skills-container', { x: 0 })
         }
       }, '-=0.05')
 
-      // 第四阶段：简单弹跳
+      // Stage 4: Simple bounce
       .to(`.skill-tag:nth-child(${index + 1})`, {
-        y: -5, // 降低弹跳高度
+        y: -5, // Reduce bounce height
         duration: 0.1,
         ease: 'power2.out'
       }, '-=0.2')
@@ -338,14 +423,14 @@ function animateSkills() {
         duration: 0.15,
         ease: 'bounce.out',
         onComplete: function () {
-          // 在完全停稳后添加粒子爆炸效果
+          // Add particle explosion effect after completely settled
           createParticles(`.skill-tag:nth-child(${index + 1})`)
         }
       })
   })
 }
 
-// 创建增强的粒子爆炸效果
+// Create enhanced particle explosion effect
 function createParticles(selector) {
   const element = document.querySelector(selector)
   if (!element) return
@@ -354,12 +439,12 @@ function createParticles(selector) {
   const centerX = rect.left + rect.width / 2
   const centerY = rect.top + rect.height / 2
 
-  // 创建更多粒子，增强视觉效果
+  // Create more particles for enhanced visual effect
   for (let i = 0; i < 12; i++) {
     const particle = document.createElement('div')
     particle.className = 'collision-particle'
 
-    // 随机粒子大小增加视觉层次
+    // Random particle size for visual hierarchy
     const size = 3 + Math.random() * 4
     const colors = [
       'rgba(0, 140, 255, 0.9)',
@@ -384,20 +469,20 @@ function createParticles(selector) {
 
     document.body.appendChild(particle)
 
-    // 随机方向和距离，增加变化
+    // Random direction and distance for variation
     const angle = (i / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.5
     const distance = 40 + Math.random() * 40
     const endX = Math.cos(angle) * distance
     const endY = Math.sin(angle) * distance
 
-    // 增强粒子动画
+    // Enhanced particle animation
     gsap.to(particle, {
       x: endX,
       y: endY,
       scale: 0,
       opacity: 0,
       rotation: 360 + Math.random() * 360,
-      duration: 0.6 + Math.random() * 0.4, // 随机持续时间
+      duration: 0.4 + Math.random() * 0.2, // Random duration
       ease: 'power2.out',
       onComplete: () => {
         document.body.removeChild(particle)
@@ -445,8 +530,12 @@ const gradientStyle = computed(() => ({
   '-webkit-text-fill-color': 'transparent',
 }))
 
-// 计算上次GitHub更新时间
+// Calculate GitHub update time
 const timeAgoText = computed(() => {
+  if (isUsingFallbackData.value) {
+    return 'using offline data'
+  }
+  
   if (!lastGitHubUpdate.value) return ''
   
   const now = Date.now()
@@ -464,7 +553,7 @@ const timeAgoText = computed(() => {
 
 <template>
   <div class="homepage">
-    <!-- 第一屏：介绍和技能 -->
+    <!-- First section: Introduction and skills -->
     <section class="hero-section">
       <div class="hero-content">
         <n-grid :cols="24" :x-gap="24" style="align-items: center;">
@@ -499,12 +588,12 @@ const timeAgoText = computed(() => {
           </n-tag>
         </div>
         
-        <!-- 统计数据 -->
+        <!-- Statistics data -->
         <div class="stats-section">
-          <div class="stats-header" v-if="lastGitHubUpdate">
-            <div class="update-info">
-              <span class="update-icon">🔄</span>
-              <span class="update-text">GitHub data updated {{ timeAgoText }}</span>
+          <div class="stats-header" v-if="lastGitHubUpdate || isUsingFallbackData">
+            <div class="update-info" :class="{ 'fallback-data': isUsingFallbackData }">
+              <span class="update-icon">{{ isUsingFallbackData ? '⚠️' : '🔄' }}</span>
+              <span class="update-text">{{ isUsingFallbackData ? 'GitHub data' : 'GitHub data updated' }} {{ timeAgoText }}</span>
             </div>
           </div>
           <div class="stats-grid">
@@ -530,7 +619,7 @@ const timeAgoText = computed(() => {
       </div>
     </section>
 
-    <!-- 后续内容区域 -->
+    <!-- Subsequent content areas -->
     <div class="content-sections">
       <n-divider />
 
@@ -588,7 +677,7 @@ const timeAgoText = computed(() => {
   padding: 0;
 }
 
-/* 第一屏样式 - 减少高度 */
+/* First section styles - reduced height */
 .hero-section {
   min-height: 80vh;
   display: flex;
@@ -602,14 +691,14 @@ const timeAgoText = computed(() => {
   box-sizing: border-box;
 }
 
-/* 后续内容区域 */
+/* Subsequent content areas */
 .content-sections {
   max-width: 1080px;
   margin: 0 auto;
   padding: 24px;
 }
 
-/* 向下滚动提示动画 */
+/* Scroll down indicator animation */
 .scroll-indicator {
   position: absolute;
   bottom: 30px;
@@ -771,7 +860,7 @@ const timeAgoText = computed(() => {
   }
 }
 
-/* 碰撞波纹效果 */
+/* Collision ripple effects */
 @keyframes ripple {
   0% {
     transform: scale(0) rotate(0deg);
@@ -792,7 +881,7 @@ const timeAgoText = computed(() => {
   }
 }
 
-/* 粒子爆炸效果 */
+/* Particle explosion effects */
 @keyframes particle-explosion {
   0% {
     transform: scale(0) translate(-50%, -50%);
@@ -810,7 +899,7 @@ const timeAgoText = computed(() => {
   }
 }
 
-/* 碰撞粒子样式 - 增强版 */
+/* Collision particle styles - enhanced version */
 .collision-particle {
   background: radial-gradient(circle, rgba(0, 140, 255, 1) 0%, rgba(0, 140, 255, 0.8) 30%, transparent 70%);
   box-shadow:
@@ -820,7 +909,7 @@ const timeAgoText = computed(() => {
   animation: particle-glow 0.6s ease-out;
 }
 
-/* 粒子发光动画 */
+/* Particle glow animation */
 @keyframes particle-glow {
   0% {
     box-shadow:
@@ -842,7 +931,7 @@ const timeAgoText = computed(() => {
   }
 }
 
-/* 光晕脉冲效果 */
+/* Glow pulse effects */
 @keyframes glow-pulse {
   0% {
     box-shadow: 0 0 5px rgba(0, 140, 255, 0.3);
@@ -865,7 +954,7 @@ const timeAgoText = computed(() => {
   color: v-bind("isDarkMode ? '#E0E0E0' : '#333333'");
 }
 
-/* 状态指示器样式 */
+/* Status indicator styles */
 .status-indicator {
   display: flex;
   align-items: center;
@@ -891,16 +980,16 @@ const timeAgoText = computed(() => {
 .skills-container {
   display: flex;
   gap: 0px;
-  /* 完全无间距 */
+  /* No spacing at all */
   margin-bottom: 24px;
   flex-wrap: wrap;
   align-items: flex-start;
-  /* 顶部对齐确保方形贴合 */
+  /* Top align to ensure square fitting */
   position: relative;
   overflow: visible;
-  /* 确保动画效果可见 */
+  /* Ensure animation effects are visible */
   padding: 4px;
-  /* 减少内边距以缩小空间 */
+  /* Reduce padding to minimize space */
 }
 
 .skill-tag {
@@ -982,12 +1071,12 @@ const timeAgoText = computed(() => {
   z-index: 0;
 }
 
-/* 碰撞时的特殊效果 */
+/* Special effects during collision */
 .skill-tag.impact {
   animation: shake 0.4s ease-in-out;
 }
 
-/* 统计数据样式 */
+/* Statistics data styles */
 .stats-section {
   margin: 32px 0;
 }
@@ -1010,6 +1099,12 @@ const timeAgoText = computed(() => {
   font-size: 12px;
   color: v-bind("isDarkMode ? '#9E9E9E' : '#666666'");
   font-weight: 500;
+}
+
+.update-info.fallback-data {
+  background: v-bind("isDarkMode ? 'rgba(255, 165, 0, 0.1)' : 'rgba(255, 165, 0, 0.05)'");
+  border-color: v-bind("isDarkMode ? 'rgba(255, 165, 0, 0.3)' : 'rgba(255, 165, 0, 0.2)'");
+  color: v-bind("isDarkMode ? '#FFB366' : '#CC8400'");
 }
 
 .update-icon {
@@ -1074,7 +1169,7 @@ const timeAgoText = computed(() => {
   font-weight: 500;
 }
 
-/* GitHub徽章样式 */
+/* GitHub badge styles */
 .stat-badge {
   position: absolute;
   top: 4px;
@@ -1099,7 +1194,7 @@ const timeAgoText = computed(() => {
   font-size: 7px;
 }
 
-/* 加载动画 */
+/* Loading animation */
 .shimmer {
   background: linear-gradient(90deg, 
     transparent 0%, 
@@ -1120,7 +1215,7 @@ const timeAgoText = computed(() => {
   }
 }
 
-/* 个人亮点样式 */
+/* Personal highlights styles */
 .highlights-section {
   margin: 24px 0;
 }
@@ -1160,7 +1255,7 @@ const timeAgoText = computed(() => {
   font-weight: 500;
 }
 
-/* 社交链接样式 */
+/* Social links styles */
 .social-section {
   margin-top: 32px;
 }
@@ -1351,6 +1446,20 @@ const timeAgoText = computed(() => {
     grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
     gap: 6px;
     max-width: 100%;
+  }
+
+  .update-info {
+    padding: 3px 8px;
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .update-icon {
+    font-size: 8px;
+  }
+
+  .update-text {
+    font-size: 9px;
   }
 
   .stat-item {
