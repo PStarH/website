@@ -64,10 +64,10 @@ onMounted(() => {
     }
   }, 60000) // Update time display every 60 seconds
 
-  // Set up 5-minute refresh interval for GitHub data
+  // Set up 15-minute refresh interval for GitHub data
   refreshInterval = setInterval(() => {
     fetchGitHubStats()
-  }, 5 * 60 * 1000) // 5 minutes
+  }, 15 * 60 * 1000) // 15 minutes
 })
 
 // Clean up intervals when component is unmounted

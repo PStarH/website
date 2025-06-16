@@ -11,17 +11,55 @@ import {
   NMenu,
   NSwitch,
   NConfigProvider,
+  NTooltip,
   darkTheme,
   lightTheme
 } from 'naive-ui'
 import { useRouter } from 'vue-router'
-import { Sun, Moon, Mail, Github } from 'lucide-vue-next'
+import { Sun, Moon, Mail, Github, ExternalLink, Youtube } from 'lucide-vue-next'
 
 const router = useRouter()
 const isDarkMode = ref(true)
 provide('isDarkMode', isDarkMode)
 
 const theme = computed(() => (isDarkMode.value ? darkTheme : lightTheme))
+
+const socialMediaLinks = [
+  {
+    name: 'Github',
+    url: 'https://github.com/PStarH',
+    icon: Github, // 使用Lucide图标
+    description: 'Check out my repositories',
+    color: '#333',
+    details: 'Explore my open source projects and contributions'
+  },
+  {
+    name: 'Medium',
+    url: 'https://medium.com/@sampan090611',
+    iconSvg: '/images/Medium.svg',
+    description: 'Read my articles and posts',
+    color: '#00ab6c',
+    details: 'Technical articles and insights about programming'
+  },
+  {
+    name: 'ORCID',
+    url: 'https://orcid.org/0009-0006-7115-4981',
+    iconSvg: '/images/ORCID.svg',
+    description: 'Academic profile and publications',
+    color: '#a6ce39',
+    details: 'Research publications and academic achievements'
+  },
+  {
+    name: 'Email',
+    url: 'mailto:sampan090611@gmail.com',
+    icon: Mail,
+    description: 'Get in touch via email',
+    color: '#ea4335',
+    details: 'Direct contact for collaborations and inquiries'
+  }
+]
+
+const hoveredItem = ref(null)
 
 const menuOptions = [
   { label: 'Home', key: 'landing' },
@@ -39,6 +77,10 @@ function handleRouteChange(key) {
 
 function toggleTheme() {
   isDarkMode.value = !isDarkMode.value
+}
+
+function openLink(url) {
+  window.open(url, '_blank')
 }
 </script>
 
@@ -78,21 +120,36 @@ function toggleTheme() {
       <n-layout-footer bordered class="footer" :style="{
         backgroundColor: isDarkMode ? 'rgba(45, 45, 68, 0.8)' : 'rgba(232, 232, 232, 0.8)'
       }">
-        <n-flex justify="center" :align="'center'" class="footer-content">
-          <n-flex :align="'center'">
-            <n-icon size="20">
-              <Mail />
-            </n-icon>
-            <span class="ml-2">sampan090611@gmail.com</span>
-          </n-flex>
-          <n-divider vertical />
-          <n-flex :align="'center'">
-            <n-icon size="20">
-              <Github />
-            </n-icon>
-            <span class="ml-2">PStarH</span>
-          </n-flex>
-        </n-flex>
+        <!-- 固定底部社交媒体栏 -->
+        <div class="social-media-bar" :class="{ 'dark': isDarkMode }">
+          <div class="social-container">
+            <div
+              v-for="(link, index) in socialMediaLinks"
+              :key="link.name"
+              class="social-item"
+              @mouseenter="hoveredItem = index"
+              @mouseleave="hoveredItem = null"
+              @click="openLink(link.url)"
+              :class="{ 'expanded': hoveredItem === index }"
+              :style="{ '--brand-color': link.color }"
+            >
+              <!-- 图标部分 -->
+              <div class="social-icon-wrapper">
+                <img v-if="link.iconSvg" :src="link.iconSvg" alt="" class="social-icon-svg" />
+                <n-icon v-else :component="link.icon" size="24" class="social-icon" />
+              </div>
+              
+              <!-- 展开的信息栏 -->
+              <div class="social-info-panel" :class="{ 'visible': hoveredItem === index }">
+                <div class="social-info-content">
+                  <div class="social-name">{{ link.name }}</div>
+                  <div class="social-description">{{ link.description }}</div>
+                  <div class="social-details">{{ link.details }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </n-layout-footer>
     </n-layout>
   </n-config-provider>
@@ -159,19 +216,179 @@ function toggleTheme() {
   max-width: 1400px;
   margin: 24px 0;
   flex: 1;
-  padding: 24px 0;
+  padding: 24px 0 90px 0; /* 增加底部padding为底部栏留空间 */
   margin: 0 auto;
   width: 100%;
   background-color: transparent;
 }
 
 .footer {
-  padding: 24px 0;
+  padding: 0;
+  position: relative;
+  border: none !important;
 }
 
-.footer-content {
+/* 社交媒体底部栏样式 */
+.social-media-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 75px; /* 减小高度 */
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.social-media-bar.dark {
+  background: rgba(45, 45, 68, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.social-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  gap: 20px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
+}
+
+.social-item {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  height: 48px; /* 添加固定高度 */
+}
+
+.social-item.expanded {
+  width: 220px;
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--brand-color);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.dark .social-item.expanded {
+  background: rgba(45, 45, 68, 0.95);
+  border-color: var(--brand-color);
+}
+
+.social-icon-wrapper {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(0, 0, 0, 0.05);
+  border: 1.5px solid transparent;
+  position: relative;
+  overflow: hidden;
+  margin: 8px;
+}
+
+.social-item.expanded .social-icon-wrapper {
+  transform: scale(0.8);
+  background: var(--brand-color);
+  border-color: var(--brand-color);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.dark .social-icon-wrapper {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.social-icon {
+  color: #666;
+  transition: all 0.3s ease;
+  z-index: 1;
+  position: relative;
+}
+
+.social-icon-svg {
+  width: 16px;
+  height: 16px;
+  transition: all 0.3s ease;
+  filter: opacity(0.7);
+}
+
+.social-item.expanded .social-icon {
+  color: white;
+}
+
+.social-item.expanded .social-icon-svg {
+  filter: brightness(0) invert(1);
+}
+
+.dark .social-icon {
+  color: #E0E0E0;
+}
+
+.social-info-panel {
+  position: absolute;
+  left: 45px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 160px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0 12px;
+}
+
+.social-info-panel.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.social-info-content {
+  text-align: left;
+}
+
+.social-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1px;
+  letter-spacing: -0.1px;
+}
+
+.social-description {
+  font-size: 9px;
+  color: #666;
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+
+.social-details {
+  font-size: 7px;
+  color: #999;
+  line-height: 1.1;
+  opacity: 0.8;
+}
+
+.dark .social-name {
+  color: #E0E0E0;
+}
+
+.dark .social-description {
+  color: #B0B0B0;
+}
+
+.dark .social-details {
+  color: #888;
 }
 
 .ml-2 {
@@ -266,6 +483,34 @@ function toggleTheme() {
   .spacer-section {
     display: none;
   }
+  
+  .social-container {
+    gap: 15px;
+    padding: 0 16px;
+  }
+  
+  .social-icon-wrapper {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .social-icon-svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .social-item.expanded {
+    width: 240px;
+  }
+  
+  .social-info-panel {
+    width: 160px;
+    left: 60px;
+  }
+  
+  .main-content {
+    padding-bottom: 80px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -275,6 +520,50 @@ function toggleTheme() {
   
   .brand-text {
     font-size: 18px;
+  }
+  
+  .social-container {
+    gap: 10px;
+    padding: 0 12px;
+  }
+  
+  .social-icon-wrapper {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .social-icon-svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .social-media-bar {
+    height: 60px;
+  }
+  
+  .social-item.expanded {
+    width: 180px;
+  }
+  
+  .social-info-panel {
+    width: 120px;
+    left: 40px;
+  }
+  
+  .social-name {
+    font-size: 12px;
+  }
+  
+  .social-description {
+    font-size: 10px;
+  }
+  
+  .social-details {
+    font-size: 8px;
+  }
+  
+  .main-content {
+    padding-bottom: 70px;
   }
 }
 
