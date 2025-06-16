@@ -66,15 +66,15 @@ function toggleTheme() {
       <n-layout-footer bordered class="footer" :style="{
         backgroundColor: isDarkMode ? 'rgba(45, 45, 68, 0.8)' : 'rgba(232, 232, 232, 0.8)'
       }">
-        <n-flex justify="center" align="center" class="footer-content">
-          <n-flex align="center">
+        <n-flex justify="center" :align="'center'" class="footer-content">
+          <n-flex :align="'center'">
             <n-icon size="20">
               <Mail />
             </n-icon>
             <span class="ml-2">sampan090611@gmail.com</span>
           </n-flex>
           <n-divider vertical />
-          <n-flex align="center">
+          <n-flex :align="'center'">
             <n-icon size="20">
               <Github />
             </n-icon>
