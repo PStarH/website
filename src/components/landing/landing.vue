@@ -4,6 +4,9 @@ import { ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { techStack, categories } from '../../data/techStack.js'
 import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 
 const router = useRouter()
 const roles = ref(['Full-stack Developer', 'AI Enthusiast', 'Data Analyst', 'NLP Developer', 'Creative Coder', 'Algorithm Designer', 'Automation Guru'])
@@ -24,16 +27,30 @@ onMounted(() => {
   setInterval(() => {
     showCursor.value = !showCursor.value
   }, 500)
-  
+
   // 等待DOM渲染完成后执行动画
   nextTick(() => {
     animateSkills()
+    setupSmoothScroll()
   })
 })
 
+function setupSmoothScroll() {
+  // 设置GSAP ScrollTrigger的平滑滚动
+  ScrollTrigger.create({
+    trigger: ".content-sections",
+    start: "top center",
+    end: "bottom center",
+    scrub: 1,
+    onUpdate: (self) => {
+      // 可以在这里添加滚动时的动画效果
+    }
+  })
+}
+
 function animateSkills() {
   const tl = gsap.timeline()
-  
+
   // 初始化所有技能标签为不可见状态，从右边很远的地方开始
   gsap.set('.skill-tag', {
     opacity: 0,
@@ -43,12 +60,12 @@ function animateSkills() {
     skewX: 20, // 更大的倾斜
     transformOrigin: 'center center'
   })
-  
+
   // 为容器添加震动效果的准备
   gsap.set('.skills-container', {
     transformOrigin: 'left center'
   })
-  
+
   // 创建紧凑高效的碰撞飞入动画（3秒内完成）
   skills.value.forEach((skill, index) => {
     // 第一阶段：高速冲击
@@ -62,65 +79,65 @@ function animateSkills() {
       ease: 'power4.out',
       delay: index * 0.5 + 0.8 // 大幅减少间隔和延迟
     })
-    
-    // 第二阶段：快速震动回弹
-    .to(`.skill-tag:nth-child(${index + 1})`, {
-      x: 2, // 更小的反弹
-      scale: 0.98,
-      rotation: 0.5,
-      duration: 0.15, // 更快的震动
-      ease: 'power2.inOut',
-      onStart: function() {
-        // 简化震动效果
-        gsap.to('.skills-container', {
-          x: index % 2 === 0 ? 3 : -3,
-          duration: 0.02,
-          repeat: 2,
-          yoyo: true,
-          ease: 'power2.inOut'
-        })
-        
-        // 增强冲击波效果
-        gsap.fromTo(`.skill-tag:nth-child(${index + 1})`, {
-          boxShadow: '0 0 0 0 rgba(0, 140, 255, 1), 0 0 0 0 rgba(255, 77, 109, 0.8)'
-        }, {
-          boxShadow: '0 0 0 25px rgba(0, 140, 255, 0), 0 0 0 40px rgba(255, 77, 109, 0)', // 增大冲击波范围
-          duration: 0.4, // 延长持续时间
-          ease: 'power2.out'
-        })
-      }
-    })
 
-    // 第三阶段：快速稳定
-    .to(`.skill-tag:nth-child(${index + 1})`, {
-      x: 0,
-      scale: 1,
-      rotation: 0,
-      skewX: 0,
-      duration: 0.25, // 大幅缩短稳定时间
-      ease: 'elastic.out(1.5, 0.6)',
-      onComplete: function() {
-        // 立即恢复容器位置
-        gsap.set('.skills-container', { x: 0 })
-      }
-    }, '-=0.05')
-    
-    // 第四阶段：简单弹跳
-    .to(`.skill-tag:nth-child(${index + 1})`, {
-      y: -5, // 降低弹跳高度
-      duration: 0.1,
-      ease: 'power2.out'
-    }, '-=0.2')
-    
-    .to(`.skill-tag:nth-child(${index + 1})`, {
-      y: 0,
-      duration: 0.15,
-      ease: 'bounce.out',
-      onComplete: function() {
-        // 在完全停稳后添加粒子爆炸效果
-        createParticles(`.skill-tag:nth-child(${index + 1})`)
-      }
-    })
+      // 第二阶段：快速震动回弹
+      .to(`.skill-tag:nth-child(${index + 1})`, {
+        x: 2, // 更小的反弹
+        scale: 0.98,
+        rotation: 0.5,
+        duration: 0.15, // 更快的震动
+        ease: 'power2.inOut',
+        onStart: function () {
+          // 简化震动效果
+          gsap.to('.skills-container', {
+            x: index % 2 === 0 ? 3 : -3,
+            duration: 0.02,
+            repeat: 2,
+            yoyo: true,
+            ease: 'power2.inOut'
+          })
+
+          // 增强冲击波效果
+          gsap.fromTo(`.skill-tag:nth-child(${index + 1})`, {
+            boxShadow: '0 0 0 0 rgba(0, 140, 255, 1), 0 0 0 0 rgba(255, 77, 109, 0.8)'
+          }, {
+            boxShadow: '0 0 0 25px rgba(0, 140, 255, 0), 0 0 0 40px rgba(255, 77, 109, 0)', // 增大冲击波范围
+            duration: 0.4, // 延长持续时间
+            ease: 'power2.out'
+          })
+        }
+      })
+
+      // 第三阶段：快速稳定
+      .to(`.skill-tag:nth-child(${index + 1})`, {
+        x: 0,
+        scale: 1,
+        rotation: 0,
+        skewX: 0,
+        duration: 0.25, // 大幅缩短稳定时间
+        ease: 'elastic.out(1.5, 0.6)',
+        onComplete: function () {
+          // 立即恢复容器位置
+          gsap.set('.skills-container', { x: 0 })
+        }
+      }, '-=0.05')
+
+      // 第四阶段：简单弹跳
+      .to(`.skill-tag:nth-child(${index + 1})`, {
+        y: -5, // 降低弹跳高度
+        duration: 0.1,
+        ease: 'power2.out'
+      }, '-=0.2')
+
+      .to(`.skill-tag:nth-child(${index + 1})`, {
+        y: 0,
+        duration: 0.15,
+        ease: 'bounce.out',
+        onComplete: function () {
+          // 在完全停稳后添加粒子爆炸效果
+          createParticles(`.skill-tag:nth-child(${index + 1})`)
+        }
+      })
   })
 }
 
@@ -128,30 +145,30 @@ function animateSkills() {
 function createParticles(selector) {
   const element = document.querySelector(selector)
   if (!element) return
-  
+
   const rect = element.getBoundingClientRect()
   const centerX = rect.left + rect.width / 2
   const centerY = rect.top + rect.height / 2
-  
+
   // 创建更多粒子，增强视觉效果
   for (let i = 0; i < 12; i++) {
     const particle = document.createElement('div')
     particle.className = 'collision-particle'
-    
+
     // 随机粒子大小增加视觉层次
     const size = 3 + Math.random() * 4
     const colors = [
       'rgba(0, 140, 255, 0.9)',
-      'rgba(255, 77, 109, 0.9)', 
+      'rgba(255, 77, 109, 0.9)',
       'rgba(0, 255, 136, 0.8)',
       'rgba(255, 165, 0, 0.8)'
     ]
     const color = colors[Math.floor(Math.random() * colors.length)]
-    
+
     particle.style.cssText = `
       position: fixed;
-      left: ${centerX - size/2}px;
-      top: ${centerY - size/2}px;
+      left: ${centerX - size / 2}px;
+      top: ${centerY - size / 2}px;
       width: ${size}px;
       height: ${size}px;
       background: ${color};
@@ -160,15 +177,15 @@ function createParticles(selector) {
       z-index: 1000;
       box-shadow: 0 0 ${size * 2}px ${color};
     `
-    
+
     document.body.appendChild(particle)
-    
+
     // 随机方向和距离，增加变化
     const angle = (i / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.5
     const distance = 40 + Math.random() * 40
     const endX = Math.cos(angle) * distance
     const endY = Math.sin(angle) * distance
-    
+
     // 增强粒子动画
     gsap.to(particle, {
       x: endX,
@@ -227,40 +244,48 @@ const gradientStyle = computed(() => ({
 
 <template>
   <div class="homepage">
-    <n-grid :cols="24" :x-gap="24">
-      <n-gi :span="16">
-        <div class="intro">
-          <h1 class="name" :style="gradientStyle">Hello, I'm Xinghan Pan!</h1>
-          <div class="role-container">
-            <span class="role">I'm a </span>
-            <span class="typed-role">{{ typedText }}<span class="cursor"
-                :class="{ 'cursor-visible': showCursor }">|</span></span>
-          </div>
-          <p class="description">
-            Currently studying at Shenzhen College of International Education, I'm a passionate computer science student
-            dedicated to learning algorithms and exploring the frontiers of artificial intelligence. My drive to
-            innovate
-            in these fields makes me eager to contribute to and thrive in small but impactful projects.
-          </p>
+    <!-- 第一屏：介绍和技能 -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <n-grid :cols="24" :x-gap="24" style="align-items: center;">
+          <n-gi :span="16">
+            <div class="intro">
+              <h1 class="name" :style="gradientStyle">Hello, I'm Xinghan Pan!</h1>
+              <div class="role-container">
+                <span class="role">I'm a </span>
+                <span class="typed-role">{{ typedText }}<span class="cursor"
+                    :class="{ 'cursor-visible': showCursor }">|</span></span>
+              </div>
+              <p class="description" style="font-weight: bold;">
+                Building the future through code at SCIE. As a CS innovator
+                passionate about AI research, I transform complex challenges into breakthrough solutions. My
+                mission is creating technology that changes the world, one algorithm at a time.
+              </p>
+            </div>
+          </n-gi>
+          <n-gi :span="8">
+            <n-flex :justify="'end'">
+              <n-avatar :size="289" :src="`/website/images/landingAvatar.jpg`" round class="avatar" />
+            </n-flex>
+          </n-gi>
+        </n-grid>
+        <div class="skills-container">
+          <n-tag v-for="(skill, index) in skills" :key="skill.name" :type="skill.type" class="skill-tag"
+            :data-index="index">
+            <template #icon>
+              <n-icon :component="ChevronRight" />
+            </template>
+            {{ skill.name }}
+          </n-tag>
         </div>
-      </n-gi>
-      <n-gi :span="8">
-        <n-flex :justify="'end'">
-          <n-avatar :size="289" :src="`/website/images/landingAvatar.jpg`" round class="avatar" />
-        </n-flex>
-      </n-gi>
-    </n-grid>
-    <div class="skills-container">
-      <n-tag v-for="(skill, index) in skills" :key="skill.name" :type="skill.type" class="skill-tag" :data-index="index">
-        <template #icon>
-          <n-icon :component="ChevronRight" />
-        </template>
-        {{ skill.name }}
-      </n-tag>
-    </div>
-    <n-divider />
+      </div>
+    </section>
 
-    <div class="projects-section">
+    <!-- 后续内容区域 -->
+    <div class="content-sections">
+      <n-divider />
+
+      <div class="projects-section">
       <h2 :style="gradientStyle">Projects I've Worked On</h2>
       <n-grid :cols="2" :x-gap="24" :y-gap="24">
         <n-gi>
@@ -303,22 +328,82 @@ const gradientStyle = computed(() => ({
         </div>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .homepage {
-  padding: 48px 24px;
-  max-width: 1080px;
-  margin: 24px 0;
-  flex: 1;
-  padding: 24 px 0;
-  margin: 0 auto;
   width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* 第一屏样式 - 减少高度 */
+.hero-section {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 24px 24px;
+  max-width: 1080px;
+  margin: 0 auto;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* 后续内容区域 */
+.content-sections {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* 向下滚动提示动画 */
+.scroll-indicator {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  animation: bounce 2s infinite;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.scroll-indicator:hover {
+  opacity: 1;
+}
+
+.scroll-text {
+  font-size: 14px;
+  color: v-bind("isDarkMode ? '#9E9E9E' : '#666666'");
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.scroll-arrow {
+  font-size: 20px;
+  color: #008CFF;
+  font-weight: bold;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  40% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+  60% {
+    transform: translateX(-50%) translateY(-5px);
+  }
 }
 
 .intro {
-  margin-bottom: 48px;
+  margin-bottom: 24px;
 }
 
 .name {
@@ -371,18 +456,22 @@ const gradientStyle = computed(() => ({
     transform: scale(1) rotate(0deg);
     filter: brightness(1);
   }
+
   25% {
     transform: scale(1.15) rotate(1deg);
     filter: brightness(1.2);
   }
+
   50% {
     transform: scale(1.08) rotate(-0.5deg);
     filter: brightness(1.1);
   }
+
   75% {
     transform: scale(1.05) rotate(0.3deg);
     filter: brightness(1.05);
   }
+
   100% {
     transform: scale(1) rotate(0deg);
     filter: brightness(1);
@@ -390,33 +479,44 @@ const gradientStyle = computed(() => ({
 }
 
 @keyframes shake {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateX(0) translateY(0) rotate(0deg);
   }
+
   10% {
     transform: translateX(-3px) translateY(-1px) rotate(-1deg);
   }
+
   20% {
     transform: translateX(3px) translateY(1px) rotate(1deg);
   }
+
   30% {
     transform: translateX(-2px) translateY(-1px) rotate(-0.5deg);
   }
+
   40% {
     transform: translateX(2px) translateY(1px) rotate(0.5deg);
   }
+
   50% {
     transform: translateX(-1px) translateY(-0.5px) rotate(-0.2deg);
   }
+
   60% {
     transform: translateX(1px) translateY(0.5px) rotate(0.2deg);
   }
+
   70% {
     transform: translateX(-0.5px) translateY(-0.2px) rotate(-0.1deg);
   }
+
   80% {
     transform: translateX(0.5px) translateY(0.2px) rotate(0.1deg);
   }
+
   90% {
     transform: translateX(-0.2px) translateY(-0.1px) rotate(-0.05deg);
   }
@@ -429,11 +529,13 @@ const gradientStyle = computed(() => ({
     opacity: 1;
     border-radius: 50%;
   }
+
   50% {
     transform: scale(1.5) rotate(180deg);
     opacity: 0.5;
     border-radius: 30%;
   }
+
   100% {
     transform: scale(3) rotate(360deg);
     opacity: 0;
@@ -447,10 +549,12 @@ const gradientStyle = computed(() => ({
     transform: scale(0) translate(-50%, -50%);
     opacity: 1;
   }
+
   50% {
     transform: scale(2) translate(-50%, -50%);
     opacity: 0.8;
   }
+
   100% {
     transform: scale(4) translate(-50%, -50%);
     opacity: 0;
@@ -460,7 +564,7 @@ const gradientStyle = computed(() => ({
 /* 碰撞粒子样式 - 增强版 */
 .collision-particle {
   background: radial-gradient(circle, rgba(0, 140, 255, 1) 0%, rgba(0, 140, 255, 0.8) 30%, transparent 70%);
-  box-shadow: 
+  box-shadow:
     0 0 10px rgba(0, 140, 255, 1),
     0 0 20px rgba(0, 140, 255, 0.8),
     0 0 30px rgba(0, 140, 255, 0.6);
@@ -470,18 +574,20 @@ const gradientStyle = computed(() => ({
 /* 粒子发光动画 */
 @keyframes particle-glow {
   0% {
-    box-shadow: 
+    box-shadow:
       0 0 5px rgba(0, 140, 255, 1),
       0 0 10px rgba(0, 140, 255, 0.8);
   }
+
   50% {
-    box-shadow: 
+    box-shadow:
       0 0 15px rgba(0, 140, 255, 1),
       0 0 30px rgba(0, 140, 255, 0.8),
       0 0 45px rgba(0, 140, 255, 0.6);
   }
+
   100% {
-    box-shadow: 
+    box-shadow:
       0 0 5px rgba(0, 140, 255, 0.5),
       0 0 10px rgba(0, 140, 255, 0.3);
   }
@@ -492,9 +598,11 @@ const gradientStyle = computed(() => ({
   0% {
     box-shadow: 0 0 5px rgba(0, 140, 255, 0.3);
   }
+
   50% {
     box-shadow: 0 0 20px rgba(0, 140, 255, 0.6), 0 0 30px rgba(0, 140, 255, 0.4);
   }
+
   100% {
     box-shadow: 0 0 5px rgba(0, 140, 255, 0.3);
   }
@@ -502,6 +610,7 @@ const gradientStyle = computed(() => ({
 
 .description {
   font-size: 18px;
+  font-style: bold;
   line-height: 1.6;
   margin-bottom: 24px;
   color: v-bind("isDarkMode ? '#E0E0E0' : '#333333'");
@@ -509,45 +618,59 @@ const gradientStyle = computed(() => ({
 
 .skills-container {
   display: flex;
-  gap: 0px; /* 完全无间距 */
-  margin-bottom: 32px;
+  gap: 0px;
+  /* 完全无间距 */
+  margin-bottom: 24px;
   flex-wrap: wrap;
-  align-items: flex-start; /* 顶部对齐确保方形贴合 */
+  align-items: flex-start;
+  /* 顶部对齐确保方形贴合 */
   position: relative;
-  overflow: visible; /* 确保动画效果可见 */
-  padding: 8px; /* 添加一些内边距防止动画被裁剪 */
+  overflow: visible;
+  /* 确保动画效果可见 */
+  padding: 4px;
+  /* 减少内边距以缩小空间 */
 }
 
 .skill-tag {
   font-size: 14px;
-  opacity: 0; /* 初始隐藏 */
-  transform: translateX(400px) scale(0.2) rotate(35deg) skewX(20deg); /* 更强烈的初始变形 */
+  opacity: 0;
+  /* 初始隐藏 */
+  transform: translateX(400px) scale(0.2) rotate(35deg) skewX(20deg);
+  /* 更强烈的初始变形 */
   transition: all 0.3s ease;
   position: relative;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border-radius: 2px; /* 更方形的圆角 */
+  border-radius: 2px;
+  /* 更方形的圆角 */
   overflow: hidden;
-  will-change: transform; /* 优化性能 */
-  margin: 0; /* 完全移除边距 */
-  backdrop-filter: blur(10px); /* 添加毛玻璃效果 */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* 添加细边框 */
-  min-height: 32px; /* 确保统一高度 */
+  will-change: transform;
+  /* 优化性能 */
+  margin: 0;
+  /* 完全移除边距 */
+  backdrop-filter: blur(10px);
+  /* 添加毛玻璃效果 */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* 添加细边框 */
+  min-height: 28px;
+  /* 减少高度 */
   display: flex;
   align-items: center;
-  padding: 6px 12px; /* 统一内边距 */
+  padding: 4px 8px;
+  /* 减少内边距 */
   box-sizing: border-box;
 }
 
 .skill-tag:hover {
   transform: translateY(-5px) scale(1.08);
-  box-shadow: 
+  box-shadow:
     0 8px 25px rgba(0, 140, 255, 0.4),
     0 0 0 3px rgba(0, 140, 255, 0.2),
     0 0 15px rgba(0, 140, 255, 0.6);
   transition: all 0.3s ease;
   animation: impact 0.4s ease-out;
-  z-index: 10; /* 确保hover时在最上层 */
+  z-index: 10;
+  /* 确保hover时在最上层 */
 }
 
 /* 添加碰撞后的光晕效果 - 增强版 */
@@ -558,13 +681,11 @@ const gradientStyle = computed(() => ({
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.9), 
-    rgba(0, 140, 255, 0.3),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.9),
+      rgba(0, 140, 255, 0.3),
+      transparent);
   transition: left 0.6s ease;
   pointer-events: none;
   z-index: 1;
@@ -603,7 +724,8 @@ const gradientStyle = computed(() => ({
 }
 
 .projects-section {
-  margin-top: 64px;
+  margin-top: 32px;
+  margin-bottom: 64px;
 }
 
 .projects-section h2 {
@@ -626,7 +748,7 @@ const gradientStyle = computed(() => ({
 }
 
 .tech-stack {
-  margin-bottom: 24px;
+  margin-bottom: 64px;
 }
 
 .tech-stack h3 {
@@ -694,8 +816,13 @@ const gradientStyle = computed(() => ({
 }
 
 @media (max-width: 768px) {
-  .homepage {
-    padding: 24px 16px;
+  .hero-section {
+    padding: 0 16px 16px;
+    min-height: 50vh;
+  }
+
+  .content-sections {
+    padding: 16px;
   }
 
   .name {
@@ -712,15 +839,20 @@ const gradientStyle = computed(() => ({
 
   .skills-container {
     flex-wrap: wrap;
-    gap: 0px; /* 移动端也保持无间距 */
-    padding: 6px;
+    gap: 0px;
+    /* 移动端也保持无间距 */
+    padding: 3px;
   }
-  
+
   .skill-tag {
-    font-size: 12px; /* 移动端稍小的字体 */
-    margin: 0; /* 移动端也无边距 */
-    padding: 4px 8px; /* 移动端更紧凑的内边距 */
-    min-height: 28px; /* 移动端稍小的高度 */
+    font-size: 12px;
+    /* 移动端稍小的字体 */
+    margin: 0;
+    /* 移动端也无边距 */
+    padding: 3px 6px;
+    /* 进一步减少移动端内边距 */
+    min-height: 24px;
+    /* 进一步减少移动端高度 */
   }
 
   .projects-section h2 {
@@ -743,6 +875,18 @@ const gradientStyle = computed(() => ({
 
   .category-title {
     font-size: 13px;
+  }
+
+  .scroll-indicator {
+    bottom: 20px;
+  }
+
+  .scroll-text {
+    font-size: 12px;
+  }
+
+  .scroll-arrow {
+    font-size: 18px;
   }
 }
 </style>
