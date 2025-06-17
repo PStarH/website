@@ -18,6 +18,10 @@ const isDarkMode = inject('isDarkMode', ref(true))
 const lastGitHubUpdate = ref(null)
 const isUsingFallbackData = ref(false)
 
+// Avatar tilt effect
+const avatarTilt = ref({ x: 0, y: 0 })
+const avatarContainer = ref(null)
+
 // Rating history data
 const ratingHistory = ref([])
 
@@ -76,6 +80,7 @@ onMounted(() => {
     setupSmoothScroll()
     setupPyramidAnimation()
     setupVortexAnimation() // Now creates snowflake effect
+    setupAvatarTiltEffect() // Add avatar tilt effect
     // Clear any stale cache older than 24 hours on startup
     clearStaleCache()
     // Force fresh data on first load to ensure users see current data
@@ -573,135 +578,181 @@ function updateStatsWithCodeforcesData(data, isFallback = false) {
   })
 }
 
-// Pyramid statistics data update animation
+// Pyramid statistics data update animation - optimized for performance
 function animatePyramidStatsUpdate() {
   const pyramidItems = document.querySelectorAll('.pyramid-stat .stat-value')
+  if (pyramidItems.length === 0) return
+  
+  // Use batch processing to reduce reflow/repaint
+  gsap.set(pyramidItems, { 
+    willChange: 'transform, opacity',
+    force3D: true 
+  })
+  
+  // Create a single timeline for better performance
+  const tl = gsap.timeline({
+    onComplete: () => {
+      // Reset will-change to auto after animation
+      gsap.set(pyramidItems, { willChange: 'auto' })
+    }
+  })
+  
   pyramidItems.forEach((item, index) => {
-    gsap.fromTo(item, {
+    tl.fromTo(item, {
       scale: 1,
       opacity: 1
     }, {
-      scale: 1.3,
-      opacity: 0.9,
-      duration: 0.4,
+      scale: 1.15, // Reduced scale change to minimize reflow
+      opacity: 0.95,
+      duration: 0.25, // Shorter duration for snappier feel
       ease: 'power2.out',
       yoyo: true,
       repeat: 1,
-      delay: index * 0.05
-    })
+      force3D: true
+    }, index * 0.03) // Reduced delay for faster completion
   })
 }
 
-// Statistics data update animation
+// Statistics data update animation - optimized for performance
 function animateStatsUpdate() {
   const statItems = document.querySelectorAll('.stat-value')
+  if (statItems.length === 0) return
+  
+  // Use batch processing to reduce reflow/repaint
+  gsap.set(statItems, { 
+    willChange: 'transform, opacity',
+    force3D: true 
+  })
+  
+  // Create a single timeline for better performance
+  const tl = gsap.timeline({
+    onComplete: () => {
+      // Reset will-change to auto after animation
+      gsap.set(statItems, { willChange: 'auto' })
+    }
+  })
+  
   statItems.forEach((item, index) => {
-    gsap.fromTo(item, {
+    tl.fromTo(item, {
       scale: 1,
       opacity: 1
     }, {
-      scale: 1.2,
-      opacity: 0.8,
-      duration: 0.3,
+      scale: 1.1, // Reduced scale change to minimize reflow
+      opacity: 0.9,
+      duration: 0.2, // Shorter duration for snappier feel
       ease: 'power2.out',
       yoyo: true,
       repeat: 1,
-      delay: index * 0.1
-    })
+      force3D: true
+    }, index * 0.05) // Reduced stagger for faster completion
   })
 }
 
 function animateSkills() {
   const tl = gsap.timeline()
 
-  // Initialize all skill tags to invisible state, starting from far right
+  // Initialize all skill tags to invisible state with hardware acceleration
   gsap.set('.skill-tag', {
     opacity: 0,
-    x: 400, // Start from farther away
-    scale: 0.2,
-    rotation: 35, // Larger rotation angle
-    skewX: 20, // Larger skew
-    transformOrigin: 'center center'
+    x: 300, // Reduced from 400
+    scale: 0.3, // Reduced from 0.2
+    rotation: 25, // Reduced from 35
+    skewX: 15, // Reduced from 20
+    transformOrigin: 'center center',
+    force3D: true,
+    willChange: 'transform'
   })
 
   // Prepare container for vibration effects
   gsap.set('.skills-container', {
-    transformOrigin: 'left center'
+    transformOrigin: 'left center',
+    force3D: true
   })
 
-  // Create compact and efficient collision animation (completed within 3 seconds)
+  // Create optimized collision animation
   skills.value.forEach((skill, index) => {
-    // Stage 1: High-speed impact
+    // Stage 1: Optimized high-speed impact
     tl.to(`.skill-tag:nth-child(${index + 1})`, {
       opacity: 1,
-      x: -10, // Reduce overshoot distance
-      scale: 1.3, // Scale up on impact
-      rotation: -4,
-      skewX: -2,
-      duration: 0.2, // Further accelerate impact
+      x: -8, // Reduced overshoot
+      scale: 1.2, // Reduced scale
+      rotation: -3,
+      skewX: -1.5,
+      duration: 0.18, // Slightly faster
       ease: 'power4.out',
-      delay: index * 0.2 + 0.3 // Greatly reduce interval: from 0.5s to 0.2s, initial delay from 0.8s to 0.4s
+      delay: index * 0.15 + 0.25, // Reduced intervals and initial delay
+      force3D: true
     })
 
-      // Stage 2: Quick vibration rebound
+      // Stage 2: Optimized vibration rebound
       .to(`.skill-tag:nth-child(${index + 1})`, {
-        x: 2, // Smaller rebound
-        scale: 0.98,
-        rotation: 0.5,
-        duration: 0.15, // Faster vibration
+        x: 1.5, // Smaller rebound
+        scale: 0.99,
+        rotation: 0.3,
+        duration: 0.12, // Faster vibration
         ease: 'power2.inOut',
+        force3D: true,
         onStart: function () {
-          // Simplified vibration effect
+          // Optimized vibration effect
           gsap.to('.skills-container', {
-            x: index % 2 === 0 ? 3 : -3,
-            duration: 0.02,
-            repeat: 2,
+            x: index % 2 === 0 ? 2 : -2, // Reduced intensity
+            duration: 0.015,
+            repeat: 1, // Fewer repeats
             yoyo: true,
-            ease: 'power2.inOut'
+            ease: 'power2.inOut',
+            force3D: true
           })
 
-          // Enhanced shockwave effect
+          // Optimized shockwave effect
           gsap.fromTo(`.skill-tag:nth-child(${index + 1})`, {
             boxShadow: '0 0 0 0 rgba(0, 140, 255, 1), 0 0 0 0 rgba(255, 77, 109, 0.8)'
           }, {
-            boxShadow: '0 0 0 25px rgba(0, 140, 255, 0), 0 0 0 40px rgba(255, 77, 109, 0)', // Increase shockwave range
-            duration: 0.4, // Extend duration
+            boxShadow: '0 0 0 20px rgba(0, 140, 255, 0), 0 0 0 30px rgba(255, 77, 109, 0)', // Reduced range
+            duration: 0.3, // Faster duration
             ease: 'power2.out'
           })
         }
       })
 
-      // Stage 3: Quick stabilization
+      // Stage 3: Optimized stabilization
       .to(`.skill-tag:nth-child(${index + 1})`, {
         x: 0,
         scale: 1,
         rotation: 0,
         skewX: 0,
-        duration: 0.25, // Greatly shorten stabilization time
-        ease: 'elastic.out(1.5, 0.6)',
+        duration: 0.2, // Faster stabilization
+        ease: 'elastic.out(1.3, 0.5)', // Less bouncy
+        force3D: true,
         onComplete: function () {
-          // Immediately restore container position
+          // Restore container position immediately
           gsap.set('.skills-container', { x: 0 })
         }
-      }, '-=0.05')
+      }, '-=0.04')
 
-      // Stage 4: Simple bounce
+      // Stage 4: Optimized bounce
       .to(`.skill-tag:nth-child(${index + 1})`, {
-        y: -5, // Reduce bounce height
-        duration: 0.1,
-        ease: 'power2.out'
-      }, '-=0.2')
+        y: -3, // Reduced bounce height
+        duration: 0.08,
+        ease: 'power2.out',
+        force3D: true
+      }, '-=0.15')
 
       .to(`.skill-tag:nth-child(${index + 1})`, {
         y: 0,
-        duration: 0.15,
+        duration: 0.12,
         ease: 'bounce.out',
+        force3D: true,
         onComplete: function () {
-          // Add particle explosion effect after completely settled
-          createParticles(`.skill-tag:nth-child(${index + 1})`)
+          // Add optimized particle explosion effect
+          createOptimizedParticles(`.skill-tag:nth-child(${index + 1})`)
+          // Reset will-change after animation
+          gsap.set(`.skill-tag:nth-child(${index + 1})`, { willChange: 'auto' })
         }
       })
   })
+  
+  // Reset container will-change after all animations
+  tl.set('.skills-container', { willChange: 'auto' })
 }
 
 // Create enhanced particle explosion effect
@@ -1003,158 +1054,170 @@ function resetPyramidAnimation() {
 }
 
 function triggerPyramidAnimation() {
-  // Smoother collision animation with bigger effects
+  // Optimized collision animation with performance improvements
   const tl = gsap.timeline()
   
-  // Phase 1: Side stats move toward center for collision (smoother)
+  // Enable hardware acceleration for all animated elements
+  gsap.set(['#leftStat', '#rightStat', '.pyramid-stat', '.grid-stat-item', '#pyramidContainer', '#finalGrid'], {
+    force3D: true,
+    willChange: 'transform'
+  })
+  
+  // Phase 1: Side stats move toward center for collision (optimized)
   tl.to('#leftStat', {
     x: -100,
     y: -15,
-    scale: 1.3,
+    scale: 1.2, // Reduced scale for better performance
     rotation: -8,
-    duration: 1.0, // Slightly longer for smoothness
-    ease: 'power2.inOut', // Smoother easing
+    duration: 0.8, // Slightly faster
+    ease: 'power2.inOut',
     force3D: true
   })
   .to('#rightStat', {
     x: 100,
     y: -15,
-    scale: 1.3,
+    scale: 1.2, // Reduced scale for better performance
     rotation: 8,
-    duration: 1.0,
+    duration: 0.8,
     ease: 'power2.inOut',
     force3D: true
-  }, '-=1.0')
+  }, '-=0.8')
   
   // Phase 2: Brief pause before final collision
-  .to({}, { duration: 0.2 }) // Shorter pause
+  .to({}, { duration: 0.15 }) // Shorter pause
   
-  // Phase 3: Final collision approach (smoother)
+  // Phase 3: Final collision approach (optimized)
   .to('#leftStat', {
     x: -40,
     y: 0,
-    scale: 1.5,
+    scale: 1.3, // Reduced scale
     rotation: -15,
-    duration: 0.3,
-    ease: 'power3.inOut', // Smoother easing
+    duration: 0.25, // Faster
+    ease: 'power3.inOut',
     force3D: true
   })
   .to('#rightStat', {
     x: 40,
     y: 0,
-    scale: 1.5,
+    scale: 1.3, // Reduced scale
     rotation: 15,
-    duration: 0.3,
+    duration: 0.25, // Faster
     ease: 'power3.inOut',
     force3D: true
-  }, '-=0.3')
+  }, '-=0.25')
   
-  // Phase 4: Impact moment with bigger effects
+  // Phase 4: Impact moment with optimized effects
   .to('#leftStat', {
     x: -10,
-    scale: 1.6,
+    scale: 1.4, // Reduced scale
     rotation: -20,
-    duration: 0.15,
+    duration: 0.12, // Faster
     ease: 'power4.out',
     force3D: true,
-    onComplete: () => createLightImpactExplosion('left')
+    onComplete: () => createOptimizedImpactExplosion('left')
   })
   .to('#rightStat', {
     x: 10,
-    scale: 1.6,
+    scale: 1.4, // Reduced scale
     rotation: 20,
-    duration: 0.15,
+    duration: 0.12, // Faster
     ease: 'power4.out',
     force3D: true,
-    onComplete: () => createLightImpactExplosion('right')
-  }, '-=0.15')
+    onComplete: () => createOptimizedImpactExplosion('right')
+  }, '-=0.12')
   
-  // Phase 5: More noticeable screen shake
+  // Phase 5: Optimized screen shake
   .to('#pyramidContainer', {
-    x: 6,
-    duration: 0.04,
-    repeat: 4,
+    x: 4, // Reduced shake intensity
+    duration: 0.03,
+    repeat: 3, // Fewer repeats
     yoyo: true,
     ease: 'none',
     force3D: true
-  }, '-=0.1')
+  }, '-=0.08')
   
-  // Phase 6: Bigger pyramid stats scattering
+  // Phase 6: Optimized pyramid stats scattering
   .to('.pyramid-stat', {
-    x: () => (Math.random() - 0.5) * 400, // Increased range
-    y: () => (Math.random() - 0.5) * 250,
-    rotation: () => (Math.random() - 0.5) * 200,
-    scale: () => 0.5 + Math.random() * 0.3,
+    x: () => (Math.random() - 0.5) * 300, // Reduced range
+    y: () => (Math.random() - 0.5) * 200,
+    rotation: () => (Math.random() - 0.5) * 120, // Reduced rotation
+    scale: () => 0.6 + Math.random() * 0.2, // Less scale variation
     opacity: 0,
-    duration: 1.0, // Longer for smoother motion
+    duration: 0.8, // Faster
     ease: 'power2.out',
     force3D: true,
     stagger: {
-      amount: 0.15, // Better stagger timing
+      amount: 0.1, // Faster stagger
       from: 'random'
     }
   }, '-=0.05')
   
-  // Phase 7: Bigger side stats scatter
+  // Phase 7: Optimized side stats scatter
   .to(['#leftStat', '#rightStat'], {
-    x: () => (Math.random() - 0.5) * 300, // Increased range
-    y: () => (Math.random() - 0.5) * 200,
-    rotation: () => (Math.random() - 0.5) * 120,
-    scale: 0.4,
+    x: () => (Math.random() - 0.5) * 200, // Reduced range
+    y: () => (Math.random() - 0.5) * 150,
+    rotation: () => (Math.random() - 0.5) * 80, // Reduced rotation
+    scale: 0.5, // Fixed scale for consistency
     opacity: 0,
-    duration: 0.8,
+    duration: 0.6, // Faster
     ease: 'power2.out',
     force3D: true
-  }, '-=0.7')
+  }, '-=0.5')
   
   // Phase 8: Show final grid
   .to('#finalGrid', {
     opacity: 1,
-    duration: 0.4,
+    duration: 0.3, // Faster
     ease: 'power2.out',
     force3D: true,
-    delay: 0.1
+    delay: 0.05 // Shorter delay
   })
   
-  // Phase 9: Smoother grid items appear
+  // Phase 9: Optimized grid items appear
   .fromTo('.grid-stat-item', {
     opacity: 0,
-    scale: 0.9,
-    y: 20
+    scale: 0.95, // Less scale change
+    y: 15 // Reduced movement
   }, {
     opacity: 1,
     scale: 1,
     y: 0,
-    duration: 0.6,
-    ease: 'back.out(1.2)', // More bouncy
+    duration: 0.4, // Faster
+    ease: 'back.out(1.1)', // Less bouncy
     force3D: true,
     stagger: {
-      amount: 0.3, // Better stagger
+      amount: 0.2, // Faster stagger
       from: 'center'
     }
-  }, '-=0.2')
+  }, '-=0.1')
   
-  // Phase 10: Restore container position
+  // Phase 10: Clean up and restore container position
   .set('#pyramidContainer', { x: 0, force3D: true })
-  
+  .set(['#leftStat', '#rightStat', '.pyramid-stat', '.grid-stat-item', '#pyramidContainer', '#finalGrid'], {
+    willChange: 'auto' // Reset will-change to save memory
+  })
 }
 
-function createLightImpactExplosion(side) {
+function createOptimizedImpactExplosion(side) {
   const container = document.querySelector('#pyramidContainer')
+  if (!container) return
+  
   const rect = container.getBoundingClientRect()
   
-  // Create more visible explosion with more particles
-  for (let i = 0; i < 15; i++) { // Increased from 6 to 15
+  // Create fewer but more visible particles for better performance
+  const particleCount = 8 // Reduced from 15 to 8
+  const fragment = document.createDocumentFragment() // Use fragment for batch DOM operations
+  
+  for (let i = 0; i < particleCount; i++) {
     const particle = document.createElement('div')
     particle.className = 'impact-particle'
     
-    const size = 4 + Math.random() * 6 // Bigger particles (4-10px)
+    const size = 5 + Math.random() * 4 // Slightly smaller particles (5-9px)
     const colors = [
       'rgba(0, 140, 255, 0.9)',
       'rgba(255, 77, 109, 0.9)',
       'rgba(0, 255, 136, 0.8)',
-      'rgba(255, 255, 255, 0.9)',
-      'rgba(255, 196, 0, 0.8)'
+      'rgba(255, 255, 255, 0.9)'
     ]
     const color = colors[Math.floor(Math.random() * colors.length)]
     
@@ -1172,24 +1235,34 @@ function createLightImpactExplosion(side) {
       border-radius: 50%;
       pointer-events: none;
       z-index: 1000;
-      box-shadow: 0 0 ${size * 3}px ${color};
+      box-shadow: 0 0 ${size * 2}px ${color};
+      will-change: transform;
     `
     
-    document.body.appendChild(particle)
-    
-    // Bigger explosion pattern
-    const angle = (i / 15) * Math.PI * 2 + (Math.random() - 0.5) * 0.6
-    const distance = 80 + Math.random() * 120 // Bigger explosion radius
+    fragment.appendChild(particle)
+  }
+  
+  // Batch append all particles
+  document.body.appendChild(fragment)
+  
+  // Animate all particles at once with optimized settings
+  const particles = document.querySelectorAll('.impact-particle')
+  particles.forEach((particle, i) => {
+    // Smaller explosion pattern for better performance
+    const angle = (i / particleCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.4
+    const distance = 50 + Math.random() * 60 // Smaller explosion radius
     const endX = Math.cos(angle) * distance
     const endY = Math.sin(angle) * distance
+    
+    gsap.set(particle, { force3D: true }) // Enable hardware acceleration
     
     gsap.to(particle, {
       x: endX,
       y: endY,
       scale: 0,
       opacity: 0,
-      rotation: 180 + Math.random() * 180,
-      duration: 0.8 + Math.random() * 0.4, // Longer duration
+      rotation: 90 + Math.random() * 90, // Less rotation
+      duration: 0.6, // Faster duration
       ease: 'power2.out',
       force3D: true,
       onComplete: () => {
@@ -1198,7 +1271,7 @@ function createLightImpactExplosion(side) {
         }
       }
     })
-  }
+  })
 }
 
 // Snowflake Animation Setup and Functions
@@ -1231,24 +1304,24 @@ function createSnowflakeParticles() {
 
   // Define subtle snowflake colors (cool tones, very light)
   const snowflakeColors = [
-    '#E8F4FD', '#F0F8FF', '#E6F3FF', '#F5FBFF', '#EBF7FF',
-    '#F8FCFF', '#E9F6FF', '#F2F9FF', '#ECF8FF', '#F6FBFF'
+    '#E8F4FD', '#F0F8FF', '#E6F3FF', '#F5FBFF', '#EBF7FF'
   ]
 
   // Define different snowflake shapes using Unicode snowflake characters
-  const snowflakeShapes = ['❅', '❆', '❄', '⋄', '◊', '✦', '✧', '⭐', '·', '∘']
+  const snowflakeShapes = ['❅', '❆', '❄', '⋄', '◊']
 
-  // Create gentle falling snowflakes
-  for (let i = 0; i < 40; i++) { // Increased to 40 snowflakes for more immediate presence
+  // Create fewer snowflakes for better performance
+  const fragment = document.createDocumentFragment()
+  for (let i = 0; i < 25; i++) { // Reduced from 40 to 25 snowflakes
     const snowflake = document.createElement('div')
     const color = snowflakeColors[i % snowflakeColors.length]
     const shape = snowflakeShapes[i % snowflakeShapes.length]
     
     snowflake.className = 'snowflake-particle'
     
-    const size = 12 + Math.random() * 9 // Increased to 12-21px snowflakes (50% larger)
+    const size = 10 + Math.random() * 6 // Reduced to 10-16px snowflakes
     const initialX = Math.random() * heroSection.offsetWidth
-    const initialY = -20 - Math.random() * 100 // Start above the visible area
+    const initialY = -20 - Math.random() * 100
     
     snowflake.style.cssText = `
       position: absolute;
@@ -1257,10 +1330,12 @@ function createSnowflakeParticles() {
       color: ${color};
       font-size: ${size}px;
       line-height: 1;
-      opacity: 0.13; /* Increased opacity by ~30% from 0.1 */
+      opacity: 0.12; /* Slightly reduced opacity */
       will-change: transform;
       user-select: none;
       pointer-events: none;
+      text-shadow: 0 0 2px rgba(255, 255, 255, 0.2);
+      filter: drop-shadow(0 0 1px rgba(0, 140, 255, 0.15));
     `
     snowflake.textContent = shape
     
@@ -1271,8 +1346,11 @@ function createSnowflakeParticles() {
       force3D: true
     })
     
-    snowflakeContainer.appendChild(snowflake)
+    fragment.appendChild(snowflake)
   }
+  
+  // Batch append all snowflakes
+  snowflakeContainer.appendChild(fragment)
 }
 
 function startSnowflakeAnimation() {
@@ -1284,53 +1362,219 @@ function startSnowflakeAnimation() {
   const sectionWidth = heroSection.offsetWidth
 
   snowflakes.forEach((snowflake, index) => {
-    // Gentle falling parameters
-    const fallDuration = 15 + Math.random() * 10 // 15-25 seconds for moderately slow fall
-    const horizontalDrift = 30 + Math.random() * 40 // 30-70px horizontal movement
-    const rotationAmount = 180 + Math.random() * 180 // Gentle rotation
+    // Optimize snowflake falling animation
+    const fallDuration = 12 + Math.random() * 6 // 12-18 seconds, more consistent
+    const horizontalDrift = 30 + Math.random() * 40 // Reduced drift (30-70px)
+    const rotationAmount = 120 + Math.random() * 240 // Moderate rotation
     const driftDirection = Math.random() > 0.5 ? 1 : -1
     
-    // Create the falling animation
+    // Create optimized falling animation
     function animateSnowflake() {
       const startX = Math.random() * sectionWidth
       const endX = startX + (horizontalDrift * driftDirection)
       const startY = -20 - Math.random() * 50
       const endY = sectionHeight + 50
       
-      // Reset position
+      // Reset position with batch processing
       gsap.set(snowflake, {
         x: startX,
         y: startY,
         rotation: Math.random() * 360,
-        opacity: 0.07 + Math.random() * 0.1 // Increased opacity range to 0.07-0.17
+        opacity: 0.06 + Math.random() * 0.08, // Reduced opacity range (0.06-0.14)
+        force3D: true
       })
       
-      // Animate falling with gentle drift and rotation
+      // Animate falling with optimized settings
       gsap.to(snowflake, {
         x: endX,
         y: endY,
         rotation: `+=${rotationAmount}`,
         duration: fallDuration,
         ease: 'none',
+        force3D: true,
         onComplete: () => {
-          // Restart the animation with shorter random delay
-          setTimeout(() => animateSnowflake(), Math.random() * 1000) // Reduced random delay before restart
+          // Restart with random delay
+          setTimeout(() => animateSnowflake(), Math.random() * 800)
         }
       })
       
-      // Add subtle horizontal swaying
+      // Simplified horizontal swaying with less intensity
       gsap.to(snowflake, {
-        x: `+=${Math.sin(index) * 20}`,
-        duration: 8 + Math.random() * 4, // 8-12 second sway cycle
+        x: `+=${Math.sin(index) * 20}`, // Reduced sway amplitude
+        duration: 8 + Math.random() * 4, // Slightly slower sway (8-12s)
         ease: 'sine.inOut',
         repeat: -1,
-        yoyo: true
+        yoyo: true,
+        force3D: true
       })
     }
     
-    // Start animation with shorter staggered delay
-    setTimeout(() => animateSnowflake(), index * 200 + Math.random() * 1000)
+    // Start animation with optimized staggered delay
+    setTimeout(() => animateSnowflake(), index * 150 + Math.random() * 600)
   })
+}
+
+// Avatar tilt effect based on mouse position
+function setupAvatarTiltEffect() {
+  const avatarContainerEl = document.querySelector('.avatar-container')
+  if (!avatarContainerEl) return
+
+  avatarContainerEl.addEventListener('mouseenter', () => {
+    avatarContainerEl.style.cursor = 'pointer'
+  })
+
+  avatarContainerEl.addEventListener('mousemove', (e) => {
+    const rect = avatarContainerEl.getBoundingClientRect()
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+    
+    // Calculate mouse position relative to center
+    const mouseX = e.clientX - centerX
+    const mouseY = e.clientY - centerY
+    
+    // Calculate tilt angles (max 15 degrees)
+    const maxTilt = 15
+    const tiltX = -(mouseY / (rect.height / 2)) * maxTilt
+    const tiltY = (mouseX / (rect.width / 2)) * maxTilt
+    
+    // Apply 3D transform to avatar
+    avatarTilt.value = { x: tiltX, y: tiltY }
+    
+    const avatar = avatarContainerEl.querySelector('.avatar')
+    if (avatar) {
+      gsap.to(avatar, {
+        rotationX: tiltX,
+        rotationY: tiltY,
+        transformPerspective: 1000,
+        duration: 0.3,
+        ease: 'power2.out'
+      })
+    }
+    
+    // Also apply slight tilt to satellite system for more immersion
+    const satelliteSystem = avatarContainerEl.querySelector('.satellite-system')
+    if (satelliteSystem) {
+      gsap.to(satelliteSystem, {
+        rotationX: tiltX * 0.3,
+        rotationY: tiltY * 0.3,
+        transformPerspective: 1000,
+        duration: 0.4,
+        ease: 'power2.out'
+      })
+    }
+  })
+
+  avatarContainerEl.addEventListener('mouseleave', () => {
+    // Reset tilt when mouse leaves
+    avatarTilt.value = { x: 0, y: 0 }
+    
+    const avatar = avatarContainerEl.querySelector('.avatar')
+    const satelliteSystem = avatarContainerEl.querySelector('.satellite-system')
+    
+    if (avatar) {
+      gsap.to(avatar, {
+        rotationX: 0,
+        rotationY: 0,
+        duration: 0.5,
+        ease: 'power2.out'
+      })
+    }
+    
+    if (satelliteSystem) {
+      gsap.to(satelliteSystem, {
+        rotationX: 0,
+        rotationY: 0,
+        duration: 0.6,
+        ease: 'power2.out'
+      })
+    }
+  })
+}
+
+// Star effect for clicking satellite icons
+const createStarEffect = (event, techName) => {
+  const clickX = event.clientX
+  const clickY = event.clientY
+  
+  // Create multiple stars with different colors based on tech
+  const techColors = {
+    'PyTorch': ['#FF6B35', '#FF8E53', '#FFAD71'],
+    'Python': ['#3776AB', '#4B8BBE', '#306998'],
+    'Vue.js': ['#4FC08D', '#42B883', '#35495E'],
+    'VS Code': ['#007ACC', '#1E90FF', '#4169E1'],
+    'TypeScript': ['#3178C6', '#007ACC', '#2B7CD6']
+  }
+  
+  const colors = techColors[techName] || ['#FFD700', '#FFA500', '#FF6347']
+  
+  // Create 8-12 stars
+  const starCount = 8 + Math.random() * 4
+  
+  for (let i = 0; i < starCount; i++) {
+    const star = document.createElement('div')
+    star.className = 'star-particle'
+    
+    const size = 4 + Math.random() * 8 // 4-12px stars
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    
+    // Different star shapes
+    const starShapes = ['⭐', '✨', '💫', '🌟', '⭐', '✦', '✧', '★']
+    const shape = starShapes[Math.floor(Math.random() * starShapes.length)]
+    
+    star.style.cssText = `
+      position: fixed;
+      left: ${clickX}px;
+      top: ${clickY}px;
+      font-size: ${size}px;
+      color: ${color};
+      pointer-events: none;
+      z-index: 9999;
+      filter: drop-shadow(0 0 3px ${color});
+      text-shadow: 0 0 6px ${color};
+    `
+    star.textContent = shape
+    
+    document.body.appendChild(star)
+    
+    // Animate stars outward in a burst pattern
+    const angle = (i / starCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.8
+    const distance = 60 + Math.random() * 80 // 60-140px spread
+    const endX = Math.cos(angle) * distance
+    const endY = Math.sin(angle) * distance
+    
+    gsap.to(star, {
+      x: endX,
+      y: endY,
+      scale: 0.2,
+      opacity: 0,
+      rotation: 180 + Math.random() * 180,
+      duration: 0.8 + Math.random() * 0.4,
+      ease: 'power2.out',
+      force3D: true,
+      onComplete: () => {
+        if (document.body.contains(star)) {
+          document.body.removeChild(star)
+        }
+      }
+    })
+  }
+  
+  // Add a ripple effect on the clicked icon
+  const target = event.target.closest('.satellite')
+  if (target) {
+    gsap.to(target, {
+      scale: 1.3,
+      duration: 0.1,
+      ease: 'power2.out',
+      yoyo: true,
+      repeat: 1
+    })
+  }
+  
+  // Optional: play a sound effect (if you have audio files)
+  // const audio = new Audio('/sounds/star-click.mp3')
+  // audio.volume = 0.3
+  // audio.play().catch(() => {}) // Ignore audio errors
 }
 </script>
 
@@ -1340,36 +1584,76 @@ function startSnowflakeAnimation() {
     <section class="hero-section">
       <div class="hero-content">
         <n-grid :cols="24" :x-gap="24" style="align-items: center;">
+          <n-gi :span="8">
+            <n-flex :justify="'start'">
+              <div class="avatar-container" ref="avatarContainer">
+                <n-avatar :size="289" :src="`/website/images/landingAvatar.jpg`" round class="avatar" />
+                
+                <!-- Satellite orbit system -->
+                <div class="satellite-system">
+                  <!-- PyTorch - 图标1: 最慢 11°/s, 最大轨道 520px, 0° -->
+                  <div class="satellite-orbit orbit-1">
+                    <div class="satellite satellite-1" @click="createStarEffect($event, 'PyTorch')">
+                      <img src="https://api.iconify.design/logos/pytorch-icon.svg" :alt="'PyTorch'" class="tech-icon pytorch-icon" width="48" height="48" />
+                    </div>
+                  </div>
+                  
+                  <!-- Python - 图标2: 17°/s, 460px, 65° -->
+                  <div class="satellite-orbit orbit-2">
+                    <div class="satellite satellite-2" @click="createStarEffect($event, 'Python')">
+                      <img src="https://api.iconify.design/logos/python.svg" :alt="'Python'" class="tech-icon python-icon" width="40" height="40" />
+                    </div>
+                  </div>
+                  
+                  <!-- Vue.js - 图标3: 23°/s, 400px, 150° -->
+                  <div class="satellite-orbit orbit-3">
+                    <div class="satellite satellite-3" @click="createStarEffect($event, 'Vue.js')">
+                      <img src="https://api.iconify.design/logos/vue.svg" :alt="'Vue.js'" class="tech-icon vue-icon" width="32" height="32" />
+                    </div>
+                  </div>
+                  
+                  <!-- VS Code - 图标4: 29°/s, 340px, 225° -->
+                  <div class="satellite-orbit orbit-4">
+                    <div class="satellite satellite-4" @click="createStarEffect($event, 'VS Code')">
+                      <img src="https://api.iconify.design/logos/visual-studio-code.svg" :alt="'VS Code'" class="tech-icon vscode-icon" width="26" height="26" />
+                    </div>
+                  </div>
+                  
+                  <!-- TypeScript - 图标5: 最快 37°/s, 最小轨道 280px, 310° -->
+                  <div class="satellite-orbit orbit-5">
+                    <div class="satellite satellite-5" @click="createStarEffect($event, 'TypeScript')">
+                      <img src="https://api.iconify.design/logos/typescript-icon.svg" :alt="'TypeScript'" class="tech-icon typescript-icon" width="22" height="22" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </n-flex>
+          </n-gi>
           <n-gi :span="16">
             <div class="intro">
               <h1 class="name" :style="gradientStyle">Hello, I'm Xinghan Pan!</h1>
               <div class="role-container">
                 <span class="role">I'm a </span>
                 <span class="typed-role">{{ typedText }}<span class="cursor"
-                    :class="{ 'cursor-visible': showCursor }">|</span></span>
+                    :class="{ 'cursor-visible': showCursor }"></span></span>
               </div>
               <p class="description" style="font-weight: bold;">
                 Building the future through code at SCIE. As a CS innovator
                 passionate about AI research, I transform complex challenges into breakthrough solutions. My
                 mission is creating technology that changes the world, one algorithm at a time.
               </p>
+              <div class="skills-container">
+                <n-tag v-for="(skill, index) in skills" :key="skill.name" :type="skill.type" class="skill-tag"
+                  :data-index="index">
+                  <template #icon>
+                    <n-icon :component="ChevronRight" />
+                  </template>
+                  {{ skill.name }}
+                </n-tag>
+              </div>
             </div>
           </n-gi>
-          <n-gi :span="8">
-            <n-flex :justify="'end'">
-              <n-avatar :size="289" :src="`/website/images/landingAvatar.jpg`" round class="avatar" />
-            </n-flex>
-          </n-gi>
         </n-grid>
-        <div class="skills-container">
-          <n-tag v-for="(skill, index) in skills" :key="skill.name" :type="skill.type" class="skill-tag"
-            :data-index="index">
-            <template #icon>
-              <n-icon :component="ChevronRight" />
-            </template>
-            {{ skill.name }}
-          </n-tag>
-        </div>
         
       </div>
     </section>
@@ -1728,8 +2012,11 @@ function startSnowflakeAnimation() {
 
 .cursor {
   display: inline-block;
-  width: 2px;
+  width: 3px;
+  height: 1.2em;
   background-color: #008CFF;
+  vertical-align: text-bottom;
+  margin-left: 2px;
   animation: blink 0.7s infinite;
 }
 
@@ -2509,10 +2796,264 @@ function startSnowflakeAnimation() {
 
 .avatar {
   transition: transform 0.3s ease-in-out;
+  position: relative;
+  z-index: 0; /* Let icons appear above the avatar */
 }
 
 .avatar:hover {
   transform: scale(1.05);
+}
+
+/* Avatar with satellite orbit system */
+.avatar-container {
+  position: relative;
+  display: inline-block;
+}
+
+.satellite-system {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2; /* Put above the avatar */
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.avatar-container {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: all 0.3s ease;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.avatar {
+  transform-style: preserve-3d;
+  transition: all 0.3s ease;
+  will-change: transform;
+}
+
+.satellite-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.satellite {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  pointer-events: auto; /* Enable clicks on satellites */
+  cursor: pointer;
+}
+
+.satellite:hover {
+  transform: translateX(-50%) scale(1.2);
+  filter: drop-shadow(0 4px 15px rgba(0, 140, 255, 0.4));
+}
+
+.tech-icon {
+  display: block;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* Individual icon size control based on speed (inverse relationship) */
+.pytorch-icon {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.python-icon {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.vue-icon {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.vscode-icon {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.typescript-icon {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* 五图标自然分散方案：
+   • 五个角速度：11, 17, 23, 29, 37 °/s（质数保证不同步）  
+   • 半径：480, 430, 380, 330, 280 px（更紧凑的50px间隔）  
+   • 初始角度：0°, 12°, 24°, 36°, 48°（自然的小角度差，让速度差异产生分散效果）  
+   • 动画时长 = 360 ÷ 角速度（秒）  
+*/
+
+/* 图标1 - PyTorch (11°/s) */
+.orbit-1 {
+  width: 480px; 
+  height: 480px;
+  animation: rotate-1 32.73s linear infinite; /*360/11*/
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+@keyframes rotate-1 { 
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); } 
+}
+.satellite-1 { 
+  animation: satellite-counter-rotate-1 32.73s linear infinite; 
+}
+@keyframes satellite-counter-rotate-1 {
+  from { transform: translateX(-50%) rotate(0deg); }
+  to { transform: translateX(-50%) rotate(-360deg); }
+}
+
+/* 图标2 - Python (17°/s) */
+.orbit-2 {
+  width: 430px; 
+  height: 430px;
+  animation: rotate-2 21.18s linear infinite; /*360/17*/
+  transform: translate(-50%, -50%) rotate(12deg);
+}
+@keyframes rotate-2 { 
+  from { transform: translate(-50%, -50%) rotate(12deg); }
+  to { transform: translate(-50%, -50%) rotate(372deg); } 
+}
+.satellite-2 { 
+  animation: satellite-counter-rotate-2 21.18s linear infinite; 
+}
+@keyframes satellite-counter-rotate-2 {
+  from { transform: translateX(-50%) rotate(-12deg); }
+  to { transform: translateX(-50%) rotate(-372deg); }
+}
+
+/* 图标3 - Vue.js (23°/s) */
+.orbit-3 {
+  width: 380px; 
+  height: 380px;
+  animation: rotate-3 15.65s linear infinite; /*360/23*/
+  transform: translate(-50%, -50%) rotate(24deg);
+}
+@keyframes rotate-3 { 
+  from { transform: translate(-50%, -50%) rotate(24deg); }
+  to { transform: translate(-50%, -50%) rotate(384deg); } 
+}
+.satellite-3 { 
+  animation: satellite-counter-rotate-3 15.65s linear infinite; 
+}
+@keyframes satellite-counter-rotate-3 {
+  from { transform: translateX(-50%) rotate(-24deg); }
+  to { transform: translateX(-50%) rotate(-384deg); }
+}
+
+/* 图标4 - VS Code (29°/s) */
+.orbit-4 {
+  width: 340px; 
+  height: 340px;
+  animation: rotate-4 12.41s linear infinite; /*360/29*/
+  transform: translate(-50%, -50%) rotate(36deg);
+}
+@keyframes rotate-4 { 
+  from { transform: translate(-50%, -50%) rotate(36deg); }
+  to { transform: translate(-50%, -50%) rotate(396deg); } 
+}
+.satellite-4 { 
+  animation: satellite-counter-rotate-4 12.41s linear infinite; 
+}
+@keyframes satellite-counter-rotate-4 {
+  from { transform: translateX(-50%) rotate(-36deg); }
+  to { transform: translateX(-50%) rotate(-396deg); }
+}
+
+/* 图标5 - TypeScript (37°/s) */
+.orbit-5 {
+  width: 320px; 
+  height: 320px;
+  animation: rotate-5 9.73s linear infinite; /*360/37*/
+  transform: translate(-50%, -50%) rotate(48deg);
+}
+@keyframes rotate-5 { 
+  from { transform: translate(-50%, -50%) rotate(48deg); }
+  to { transform: translate(-50%, -50%) rotate(408deg); } 
+
+}
+.satellite-5 { 
+  animation: satellite-counter-rotate-5 9.73s linear infinite; 
+}
+@keyframes satellite-counter-rotate-5 {
+  from { transform: translateX(-50%) rotate(-48deg); }
+  to { transform: translateX(-50%) rotate(-408deg); }
+}
+
+/* Responsive adjustments for satellite system */
+@media (max-width: 1024px) {
+  .orbit-1 {
+    width: 380px; /* PyTorch - scaled down from 480px */
+    height: 380px;
+  }
+  
+  .orbit-2 {
+    width: 340px; /* Python - scaled down from 430px */
+    height: 340px;
+  }
+  
+  .orbit-3 {
+    width: 300px; /* Vue.js - scaled down from 380px */
+    height: 300px;
+  }
+  
+  .orbit-4 {
+    width: 260px; /* VS Code - scaled down from 330px */
+    height: 260px;
+  }
+  
+  .orbit-5 {
+    width: 220px; /* TypeScript - scaled down from 280px */
+    height: 220px;
+  }
+  
+  /* Scale down icons for tablets while maintaining size relationships */
+  .pytorch-icon {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .python-icon {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .vue-icon {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .vscode-icon {
+    width: 21px !important;
+    height: 21px !important;
+  }
+
+  .typescript-icon {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .satellite-system {
+    display: none; /* Hide satellite system on mobile for performance and clarity */
+  }
 }
 
 .projects-section {
@@ -2911,5 +3452,44 @@ function startSnowflakeAnimation() {
   .snowflake-particle {
     font-size: 6px !important; /* Smaller snowflakes on tablets */
   }
+}
+
+/* Star effect styles */
+.star-particle {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  user-select: none;
+  animation: sparkle 0.1s ease-out;
+}
+
+@keyframes sparkle {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(90deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+/* Enhanced satellite hover effect */
+.satellite {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.satellite:hover .tech-icon {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)) brightness(1.3) saturate(1.2);
+  transform: scale(1.1);
+}
+
+.satellite:active {
+  transform: translateX(-50%) scale(0.95);
 }
 </style>
