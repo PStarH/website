@@ -755,8 +755,8 @@ function animateSkills() {
   tl.set('.skills-container', { willChange: 'auto' })
 }
 
-// Create enhanced particle explosion effect
-function createParticles(selector) {
+// Create optimized particle explosion effect
+function createOptimizedParticles(selector) {
   const element = document.querySelector(selector)
   if (!element) return
 
@@ -764,13 +764,16 @@ function createParticles(selector) {
   const centerX = rect.left + rect.width / 2
   const centerY = rect.top + rect.height / 2
 
-  // Create more particles for enhanced visual effect
-  for (let i = 0; i < 12; i++) {
+  // Create fewer particles for better performance
+  const particleCount = 6 // Reduced from 12
+  const fragment = document.createDocumentFragment()
+  
+  for (let i = 0; i < particleCount; i++) {
     const particle = document.createElement('div')
     particle.className = 'collision-particle'
 
-    // Random particle size for visual hierarchy
-    const size = 3 + Math.random() * 4
+    // Optimized particle size
+    const size = 3 + Math.random() * 3 // Smaller particles (3-6px)
     const colors = [
       'rgba(0, 140, 255, 0.9)',
       'rgba(255, 77, 109, 0.9)',
@@ -789,31 +792,44 @@ function createParticles(selector) {
       border-radius: 50%;
       pointer-events: none;
       z-index: 1000;
-      box-shadow: 0 0 ${size * 2}px ${color};
+      box-shadow: 0 0 ${size * 1.5}px ${color};
+      will-change: transform;
     `
 
-    document.body.appendChild(particle)
-
-    // Random direction and distance for variation
-    const angle = (i / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.5
-    const distance = 40 + Math.random() * 40
+    fragment.appendChild(particle)
+  }
+  
+  // Batch append all particles
+  document.body.appendChild(fragment)
+  
+  // Animate all particles with optimized settings
+  const particles = document.querySelectorAll('.collision-particle')
+  particles.forEach((particle, i) => {
+    // Smaller explosion pattern
+    const angle = (i / particleCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.3
+    const distance = 25 + Math.random() * 25 // Smaller explosion radius
     const endX = Math.cos(angle) * distance
     const endY = Math.sin(angle) * distance
 
-    // Enhanced particle animation
+    gsap.set(particle, { force3D: true }) // Enable hardware acceleration
+
+    // Optimized particle animation
     gsap.to(particle, {
       x: endX,
       y: endY,
       scale: 0,
       opacity: 0,
-      rotation: 360 + Math.random() * 360,
-      duration: 0.4 + Math.random() * 0.2, // Random duration
+      rotation: 180 + Math.random() * 180, // Less rotation variation
+      duration: 0.3 + Math.random() * 0.1, // Faster and more consistent duration
       ease: 'power2.out',
+      force3D: true,
       onComplete: () => {
-        document.body.removeChild(particle)
+        if (document.body.contains(particle)) {
+          document.body.removeChild(particle)
+        }
       }
     })
-  }
+  })
 }
 
 function typeNextRole() {
@@ -1003,53 +1019,22 @@ function showSideStatsAndTrigger() {
 }
 
 function resetPyramidAnimation() {
-  // Stop any ongoing animations
+  // Stop any ongoing animations efficiently
   gsap.killTweensOf(['#leftStat', '#rightStat', '.pyramid-stat', '.grid-stat-item', '#pyramidContainer', '#finalGrid'])
   
-  // Reset all elements to initial state with hardware acceleration
-  gsap.set('#leftStat', {
-    x: -180,
-    opacity: 1,
-    scale: 1,
-    rotation: 0,
-    y: 0,
-    force3D: true
-  })
+  // Batch reset all elements to initial state with hardware acceleration
+  const resetElements = [
+    { selector: '#leftStat', props: { x: -180, opacity: 1, scale: 1, rotation: 0, y: 0, force3D: true, willChange: 'auto' } },
+    { selector: '#rightStat', props: { x: 180, opacity: 1, scale: 1, rotation: 0, y: 0, force3D: true, willChange: 'auto' } },
+    { selector: '.pyramid-stat', props: { scale: 1, rotation: 0, x: 0, y: 0, opacity: 1, force3D: true, willChange: 'auto' } },
+    { selector: '.grid-stat-item', props: { scale: 0.95, opacity: 0, y: 15, force3D: true, willChange: 'auto' } },
+    { selector: '#finalGrid', props: { opacity: 0, force3D: true, willChange: 'auto' } },
+    { selector: '#pyramidContainer', props: { x: 0, force3D: true, willChange: 'auto' } }
+  ]
   
-  gsap.set('#rightStat', {
-    x: 180,
-    opacity: 1,
-    scale: 1,
-    rotation: 0,
-    y: 0,
-    force3D: true
-  })
-  
-  // Keep pyramid stats visible and in position
-  gsap.set('.pyramid-stat', {
-    scale: 1,
-    rotation: 0,
-    x: 0,
-    y: 0,
-    opacity: 1,
-    force3D: true
-  })
-  
-  gsap.set('.grid-stat-item', {
-    scale: 0.95,
-    opacity: 0,
-    y: 15,
-    force3D: true
-  })
-  
-  gsap.set('#finalGrid', {
-    opacity: 0,
-    force3D: true
-  })
-  
-  gsap.set('#pyramidContainer', {
-    x: 0,
-    force3D: true
+  // Apply all resets in batch for better performance
+  resetElements.forEach(({ selector, props }) => {
+    gsap.set(selector, props)
   })
 }
 
