@@ -3042,7 +3042,6 @@ const createStarEffect = (event, techName) => {
 }
 
 .projects-section {
-  margin-top: 32px;
   margin-bottom: 64px;
 }
 
