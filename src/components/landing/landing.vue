@@ -1913,7 +1913,7 @@ const createStarEffect = (event, techName) => {
   padding-top: 0 24px 24px;
   padding-left: 0 24px 24px;
   padding-right: 0 24px 24px;
-  max-width: 1080px;
+  max-width: 85%;
   margin: 0 auto;
   position: relative;
   box-sizing: border-box;
@@ -1922,7 +1922,7 @@ const createStarEffect = (event, techName) => {
 
 /* Subsequent content areas */
 .content-sections {
-  max-width: 1080px;
+  max-width: 85%;
   margin: 0 auto;
   padding-right: 24px;
   padding-left: 24px;
@@ -2374,7 +2374,7 @@ const createStarEffect = (event, techName) => {
 .pyramid-container {
   position: relative;
   width: 100%;
-  max-width: 1200px;
+  max-width: 100%;
   height: 80vh;
   display: flex;
   flex-direction: column;
