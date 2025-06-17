@@ -75,7 +75,7 @@ onMounted(() => {
     animateSkills()
     setupSmoothScroll()
     setupPyramidAnimation()
-    setupVortexAnimation()
+    setupVortexAnimation() // Now creates snowflake effect
     // Clear any stale cache older than 24 hours on startup
     clearStaleCache()
     // Force fresh data on first load to ensure users see current data
@@ -1201,23 +1201,23 @@ function createLightImpactExplosion(side) {
   }
 }
 
-// Vortex Animation Setup and Functions
+// Snowflake Animation Setup and Functions
 function setupVortexAnimation() {
-  // Create tech stack vortex particles
-  createVortexParticles()
+  // Create gentle snowflake particles
+  createSnowflakeParticles()
   
-  // Start the continuous vortex animation
-  startVortexAnimation()
+  // Start the continuous snowfall animation
+  startSnowflakeAnimation()
 }
 
-function createVortexParticles() {
+function createSnowflakeParticles() {
   const heroSection = document.querySelector('.hero-section')
   if (!heroSection) return
 
-  // Create container for vortex particles
-  const vortexContainer = document.createElement('div')
-  vortexContainer.className = 'vortex-container'
-  vortexContainer.style.cssText = `
+  // Create container for snowflake particles
+  const snowflakeContainer = document.createElement('div')
+  snowflakeContainer.className = 'snowflake-container'
+  snowflakeContainer.style.cssText = `
     position: absolute;
     top: 0;
     left: 0;
@@ -1227,100 +1227,109 @@ function createVortexParticles() {
     overflow: hidden;
     z-index: 1;
   `
-  heroSection.appendChild(vortexContainer)
+  heroSection.appendChild(snowflakeContainer)
 
-  // Define colorful block colors
-  const blockColors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
-    '#F8C471', '#82E0AA', '#F1948A', '#85929E', '#AED6F1'
+  // Define subtle snowflake colors (cool tones, very light)
+  const snowflakeColors = [
+    '#E8F4FD', '#F0F8FF', '#E6F3FF', '#F5FBFF', '#EBF7FF',
+    '#F8FCFF', '#E9F6FF', '#F2F9FF', '#ECF8FF', '#F6FBFF'
   ]
 
-  // Calculate content boundaries to avoid text and avatar
-  const heroContent = heroSection.querySelector('.hero-content')
-  const contentRect = heroContent ? heroContent.getBoundingClientRect() : null
-  const heroRect = heroSection.getBoundingClientRect()
-  
-  // Define safe zone boundaries (avoid central content area)
-  const centerX = heroSection.offsetWidth / 2
-  const centerY = heroSection.offsetHeight / 2
-  const safeZoneWidth = 500 // Avoid 500px width around center
-  const safeZoneHeight = 300 // Avoid 300px height around center
+  // Define different snowflake shapes using Unicode snowflake characters
+  const snowflakeShapes = ['❅', '❆', '❄', '⋄', '◊', '✦', '✧', '⭐', '·', '∘']
 
-  // Create minimal spiraling blocks for performance
-  for (let i = 0; i < 8; i++) { // Reduced from 12 to 8
-    const particle = document.createElement('div')
-    const color = blockColors[i % blockColors.length]
+  // Create gentle falling snowflakes
+  for (let i = 0; i < 40; i++) { // Increased to 40 snowflakes for more immediate presence
+    const snowflake = document.createElement('div')
+    const color = snowflakeColors[i % snowflakeColors.length]
+    const shape = snowflakeShapes[i % snowflakeShapes.length]
     
-    particle.className = 'vortex-particle'
+    snowflake.className = 'snowflake-particle'
     
-    const size = 4 + Math.random() * 3 // Even smaller: 4-7px blocks
-    particle.style.cssText = `
+    const size = 12 + Math.random() * 9 // Increased to 12-21px snowflakes (50% larger)
+    const initialX = Math.random() * heroSection.offsetWidth
+    const initialY = -20 - Math.random() * 100 // Start above the visible area
+    
+    snowflake.style.cssText = `
       position: absolute;
       width: ${size}px;
       height: ${size}px;
-      background: ${color};
-      border-radius: 1px;
-      opacity: 0.2; /* Even more subtle */
+      color: ${color};
+      font-size: ${size}px;
+      line-height: 1;
+      opacity: 0.13; /* Increased opacity by ~30% from 0.1 */
       will-change: transform;
+      user-select: none;
+      pointer-events: none;
     `
+    snowflake.textContent = shape
     
-    // Set initial position avoiding the center content area
-    const angle = (i / 20) * Math.PI * 2
-    const minRadius = Math.max(safeZoneWidth, safeZoneHeight) / 2 + 50 // Start outside safe zone
-    const radius = minRadius + Math.random() * 100
-    
-    const x = centerX + Math.cos(angle) * radius
-    const y = centerY + Math.sin(angle) * radius
-    
-    gsap.set(particle, {
-      x: x,
-      y: y,
+    gsap.set(snowflake, {
+      x: initialX,
+      y: initialY,
       rotation: Math.random() * 360,
       force3D: true
     })
     
-    vortexContainer.appendChild(particle)
+    snowflakeContainer.appendChild(snowflake)
   }
 }
 
-function startVortexAnimation() {
-  const particles = document.querySelectorAll('.vortex-particle')
-  if (particles.length === 0) return
+function startSnowflakeAnimation() {
+  const snowflakes = document.querySelectorAll('.snowflake-particle')
+  if (snowflakes.length === 0) return
 
   const heroSection = document.querySelector('.hero-section')
-  const centerX = heroSection.offsetWidth / 2
-  const centerY = heroSection.offsetHeight / 2
-  
-  // Define safe zone to avoid content
-  const safeZoneWidth = 500
-  const safeZoneHeight = 300
-  const minRadius = Math.max(safeZoneWidth, safeZoneHeight) / 2 + 80
+  const sectionHeight = heroSection.offsetHeight
+  const sectionWidth = heroSection.offsetWidth
 
-  particles.forEach((particle, index) => {
-    // Very simple orbit parameters
-    const baseRadius = minRadius + (index % 3) * 80 // Only 3 orbital layers, more spaced
-    const rotationSpeed = 0.2 + (index % 2) * 0.1 // Even slower: 0.2, 0.3
-    const direction = index % 2 === 0 ? 1 : -1
-    const startAngle = (index / particles.length) * Math.PI * 2
+  snowflakes.forEach((snowflake, index) => {
+    // Gentle falling parameters
+    const fallDuration = 15 + Math.random() * 10 // 15-25 seconds for moderately slow fall
+    const horizontalDrift = 30 + Math.random() * 40 // 30-70px horizontal movement
+    const rotationAmount = 180 + Math.random() * 180 // Gentle rotation
+    const driftDirection = Math.random() > 0.5 ? 1 : -1
     
-    // Single, very slow rotation animation
-    gsap.to(particle, {
-      duration: 40 / rotationSpeed, // Much slower rotation (40s base)
-      ease: 'none',
-      repeat: -1,
-      onUpdate: function() {
-        const currentTime = this.totalTime()
-        const angle = startAngle + direction * (currentTime / this.duration()) * Math.PI * 2
-        
-        const x = centerX + Math.cos(angle) * baseRadius
-        const y = centerY + Math.sin(angle) * baseRadius
-        
-        gsap.set(particle, { x, y, force3D: true })
-      }
-    })
+    // Create the falling animation
+    function animateSnowflake() {
+      const startX = Math.random() * sectionWidth
+      const endX = startX + (horizontalDrift * driftDirection)
+      const startY = -20 - Math.random() * 50
+      const endY = sectionHeight + 50
+      
+      // Reset position
+      gsap.set(snowflake, {
+        x: startX,
+        y: startY,
+        rotation: Math.random() * 360,
+        opacity: 0.07 + Math.random() * 0.1 // Increased opacity range to 0.07-0.17
+      })
+      
+      // Animate falling with gentle drift and rotation
+      gsap.to(snowflake, {
+        x: endX,
+        y: endY,
+        rotation: `+=${rotationAmount}`,
+        duration: fallDuration,
+        ease: 'none',
+        onComplete: () => {
+          // Restart the animation with shorter random delay
+          setTimeout(() => animateSnowflake(), Math.random() * 1000) // Reduced random delay before restart
+        }
+      })
+      
+      // Add subtle horizontal swaying
+      gsap.to(snowflake, {
+        x: `+=${Math.sin(index) * 20}`,
+        duration: 8 + Math.random() * 4, // 8-12 second sway cycle
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true
+      })
+    }
     
-    // Remove scale and opacity animations to improve performance
+    // Start animation with shorter staggered delay
+    setTimeout(() => animateSnowflake(), index * 200 + Math.random() * 1000)
   })
 }
 </script>
@@ -2861,8 +2870,8 @@ function startVortexAnimation() {
   }
 }
 
-/* Vortex Animation Styles */
-.vortex-container {
+/* Snowflake Animation Styles */
+.snowflake-container {
   position: absolute;
   top: 0;
   left: 0;
@@ -2873,30 +2882,34 @@ function startVortexAnimation() {
   z-index: 1;
 }
 
-.vortex-particle {
+.snowflake-particle {
   position: absolute;
-  border-radius: 1px;
   will-change: transform;
   backface-visibility: hidden;
+  text-align: center;
+  font-family: Arial, sans-serif;
 }
 
-/* Remove hover effects for better performance */
-
-/* Dark mode adjustments for vortex */
-.n-config-provider[data-theme="dark"] .vortex-particle {
-  opacity: 0.25 !important;
+/* Dark mode adjustments for snowflakes */
+.n-config-provider[data-theme="dark"] .snowflake-particle {
+  opacity: 0.3 !important; /* Increased visibility in dark mode */
+  color: #F0F8FF !important; /* Light blue-white for dark backgrounds */
 }
 
-/* Responsive adjustments for vortex */
+/* Responsive adjustments for snowflakes */
 @media (max-width: 768px) {
-  .vortex-particle {
-    display: none; /* Hide vortex on mobile for performance */
+  .snowflake-particle {
+    display: none; /* Hide snowflakes on mobile for performance */
   }
 }
 
 @media (max-width: 1024px) {
-  .vortex-container {
-    opacity: 0.7; /* Reduce opacity on tablets */
+  .snowflake-container {
+    opacity: 0.6; /* Reduce opacity on tablets */
+  }
+  
+  .snowflake-particle {
+    font-size: 6px !important; /* Smaller snowflakes on tablets */
   }
 }
 </style>
