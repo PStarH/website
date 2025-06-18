@@ -202,6 +202,20 @@ function openLink(url) {
   justify-content: flex-end;
 }
 
+.nav-menu {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+}
+
+.nav-menu :deep(.n-menu-item-content) {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 0.3px; /* 减小字体间距 */
+  line-height: 1.5; /* 提高行高，让字体看起来不那么扁 */
+  transform: scaleY(1.05); /* 轻微拉伸字体高度 */
+}
+
 .spacer-section {
   flex: 1;
 }
