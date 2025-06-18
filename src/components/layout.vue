@@ -28,34 +28,26 @@ const socialMediaLinks = [
   {
     name: 'Github',
     url: 'https://github.com/PStarH',
-    icon: Github, // 使用Lucide图标
-    description: 'Check out my repositories',
-    color: '#333',
-    details: 'Explore my open source projects and contributions'
+    icon: Github,
+    color: '#333'
   },
   {
     name: 'Medium',
     url: 'https://medium.com/@sampan090611',
     iconSvg: '/images/Medium.svg',
-    description: 'Read my articles and posts',
-    color: '#00ab6c',
-    details: 'Technical articles and insights about programming'
+    color: '#00ab6c'
   },
   {
     name: 'ORCID',
     url: 'https://orcid.org/0009-0006-7115-4981',
     iconSvg: '/images/ORCID.svg',
-    description: 'Academic profile and publications',
-    color: '#a6ce39',
-    details: 'Research publications and academic achievements'
+    color: '#a6ce39'
   },
   {
     name: 'Email',
     url: 'mailto:sampan090611@gmail.com',
     icon: Mail,
-    description: 'Get in touch via email',
-    color: '#ea4335',
-    details: 'Direct contact for collaborations and inquiries'
+    color: '#ea4335'
   }
 ]
 
@@ -131,7 +123,10 @@ function openLink(url) {
               @mouseleave="hoveredItem = null"
               @click="openLink(link.url)"
               :class="{ 'expanded': hoveredItem === index }"
-              :style="{ '--brand-color': link.color }"
+              :style="{ 
+                '--brand-color': link.color,
+                'animation-delay': `${0.2 + index * 0.1}s` 
+              }"
             >
               <!-- 图标部分 -->
               <div class="social-icon-wrapper">
@@ -140,11 +135,9 @@ function openLink(url) {
               </div>
               
               <!-- 展开的信息栏 -->
-              <div class="social-info-panel" :class="{ 'visible': hoveredItem === index }">
+              <div v-if="hoveredItem === index" class="social-info-panel visible">
                 <div class="social-info-content">
                   <div class="social-name">{{ link.name }}</div>
-                  <div class="social-description">{{ link.description }}</div>
-                  <div class="social-details">{{ link.details }}</div>
                 </div>
               </div>
             </div>
@@ -242,6 +235,18 @@ function openLink(url) {
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   transition: all 0.3s ease;
+  animation: slideUpFade 0.8s ease-out; /* 添加进入动画 */
+}
+
+@keyframes slideUpFade {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .social-media-bar.dark {
@@ -255,7 +260,7 @@ function openLink(url) {
   justify-content: center;
   align-items: center;
   height: 100%;
-  gap: 20px;
+  gap: 32px; /* 增加间距 */
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
@@ -264,20 +269,47 @@ function openLink(url) {
 .social-item {
   position: relative;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 20px;
-  overflow: hidden;
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border-radius: 32px;
+  overflow: visible;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  height: 48px; /* 添加固定高度 */
+  height: 56px;
+  width: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 初始状态居中 */
+  z-index: 1;
+  min-width: 56px;
+  animation: socialItemFadeIn 0.6s ease-out both;
+}
+
+@keyframes socialItemFadeIn {
+  from {
+    transform: translateY(30px) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.social-item:hover {
+  transform: translateY(-2px); /* 轻微上浮效果 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .social-item.expanded {
-  width: 220px;
+  width: 200px; /* 稍微减少宽度避免重叠 */
   background: rgba(255, 255, 255, 0.95);
   border-color: var(--brand-color);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  z-index: 10; /* 确保展开的按钮在最上层 */
+  transform: translateY(-2px);
+  justify-content: flex-start; /* 靠左对齐，使图标移到左边 */
+  padding-left: 8px; /* 给图标添加左侧内边距 */
 }
 
 .dark .social-item.expanded {
@@ -285,26 +317,51 @@ function openLink(url) {
   border-color: var(--brand-color);
 }
 
+/* 确保按钮在任何状态下都可点击 */
+.social-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.social-item.expanded::before {
+  z-index: 1;
+}
+
 .social-icon-wrapper {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   background: rgba(0, 0, 0, 0.05);
-  border: 1.5px solid transparent;
+  border: 2px solid transparent;
   position: relative;
   overflow: hidden;
-  margin: 8px;
+  margin: auto; /* 使用auto让图标在父元素中完全居中 */
+  flex-shrink: 0;
+}
+
+.social-item:hover .social-icon-wrapper {
+  transform: scale(1.15); /* 增加悬停时的放大效果 */
+  background: var(--brand-color);
+  border-color: var(--brand-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .social-item.expanded .social-icon-wrapper {
-  transform: scale(0.8);
+  transform: scale(1.0); /* 展开时不缩放，保持原始大小 */
   background: var(--brand-color);
   border-color: var(--brand-color);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+  margin: 0; /* 展开时移除自动边距，使图标靠左 */
 }
 
 .dark .social-icon-wrapper {
@@ -313,16 +370,27 @@ function openLink(url) {
 
 .social-icon {
   color: #666;
-  transition: all 0.3s ease;
+  transition: all 0.5s ease;
   z-index: 1;
   position: relative;
+  font-size: 24px; /* 增加图标大小 */
 }
 
 .social-icon-svg {
-  width: 16px;
-  height: 16px;
-  transition: all 0.3s ease;
-  filter: opacity(0.7);
+  width: 20px; /* 增加SVG图标大小 */
+  height: 20px;
+  transition: all 0.5s ease;
+  filter: opacity(0.8); /* 增加初始透明度 */
+}
+
+.social-item:hover .social-icon {
+  color: white;
+  transform: scale(1.2);
+}
+
+.social-item:hover .social-icon-svg {
+  filter: brightness(0) invert(1);
+  transform: scale(1.2);
 }
 
 .social-item.expanded .social-icon {
@@ -338,58 +406,43 @@ function openLink(url) {
 }
 
 .social-info-panel {
-  position: absolute;
-  left: 45px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 160px;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 0 12px;
+  position: relative;
+  margin-left: 12px;
+  width: auto;
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  flex: 1;
+  animation: slideInFromLeft 0.3s ease-out;
 }
 
-.social-info-panel.visible {
-  opacity: 1;
-  visibility: visible;
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .social-info-content {
   text-align: left;
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 .social-name {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
   color: #333;
-  margin-bottom: 1px;
-  letter-spacing: -0.1px;
-}
-
-.social-description {
-  font-size: 9px;
-  color: #666;
-  margin-bottom: 2px;
-  line-height: 1.2;
-}
-
-.social-details {
-  font-size: 7px;
-  color: #999;
-  line-height: 1.1;
-  opacity: 0.8;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .dark .social-name {
   color: #E0E0E0;
-}
-
-.dark .social-description {
-  color: #B0B0B0;
-}
-
-.dark .social-details {
-  color: #888;
 }
 
 .ml-2 {
@@ -486,27 +539,38 @@ function openLink(url) {
   }
   
   .social-container {
-    gap: 15px;
+    gap: 12px; /* 增加移动端间距 */
     padding: 0 16px;
   }
   
+  .social-item {
+    width: 44px;
+    height: 44px;
+    min-width: 44px; /* 确保移动端可点击区域 */
+  }
+  
   .social-icon-wrapper {
-    width: 45px;
-    height: 45px;
+    width: 28px;
+    height: 28px;
+    margin: auto; /* 保持居中 */
   }
   
   .social-icon-svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
   }
   
   .social-item.expanded {
-    width: 240px;
+    width: 200px; /* 移动端稍小的展开宽度 */
+    padding-left: 6px; /* 移动端左边距稍小 */
+  }
+  
+  .social-item.expanded .social-icon-wrapper {
+    margin: 0; /* 展开时移除自动边距 */
   }
   
   .social-info-panel {
-    width: 160px;
-    left: 60px;
+    margin-left: 10px;
   }
   
   .main-content {
@@ -524,47 +588,58 @@ function openLink(url) {
   }
   
   .social-container {
-    gap: 10px;
+    gap: 8px; /* 小屏幕更紧凑的间距 */
     padding: 0 12px;
   }
   
+  .social-item {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+  
   .social-icon-wrapper {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
+    margin: auto; /* 保持居中 */
   }
   
   .social-icon-svg {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
   }
   
   .social-media-bar {
-    height: 60px;
+    height: 56px; /* 稍微减小高度 */
   }
   
   .social-item.expanded {
-    width: 180px;
+    width: 160px; /* 小屏幕更小的展开宽度 */
+    padding-left: 5px; /* 更小屏幕左边距更小 */
+  }
+  
+  .social-item.expanded .social-icon-wrapper {
+    margin: 0; /* 展开时移除自动边距 */
   }
   
   .social-info-panel {
-    width: 120px;
-    left: 40px;
+    margin-left: 8px;
   }
   
   .social-name {
-    font-size: 12px;
+    font-size: 11px;
   }
   
   .social-description {
-    font-size: 10px;
+    font-size: 9px;
   }
   
   .social-details {
-    font-size: 8px;
+    font-size: 7px;
   }
   
   .main-content {
-    padding-bottom: 70px;
+    padding-bottom: 66px;
   }
 }
 

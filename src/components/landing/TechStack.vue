@@ -106,7 +106,7 @@ const techCategories = [
   },
   {
     id: 'backend',
-    name: 'Backend & Database',
+    name: 'Backend & DevOps',
     techs: [
       { name: 'Node.js', icon: 'logos:nodejs-icon' },
       { name: 'Python', icon: 'logos:python' },
