@@ -163,6 +163,7 @@ function openLink(url) {
 }
 
 .header {
+  max-height: 20vh;
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -213,7 +214,7 @@ function openLink(url) {
 }
 
 .main-content {
-  max-width: 1400px;
+  max-width: 100vw;
   margin: 24px 0;
   flex: 1;
   padding: 24px 0 90px 0; /* 增加底部padding为底部栏留空间 */

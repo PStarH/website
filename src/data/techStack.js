@@ -337,6 +337,11 @@ export const techStack = [
     icon: 'simple-icons:opencv',
     category: 'ai'
   },
+  {
+    name: 'ChromaDB',
+    icon: '/images/chroma.svg',
+    category: 'ai'
+  },
 ]
 
 export const categories = [

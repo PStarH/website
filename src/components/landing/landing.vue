@@ -2,10 +2,11 @@
 import { ref, onMounted, onUnmounted, computed, inject, nextTick } from 'vue'
 import { ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import { techStack, categories } from '../../data/techStack.js'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
+import TechStack from './TechStack.vue'
+import Projects from './Projects.vue'
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin)
 
@@ -1849,49 +1850,9 @@ const createStarEffect = (event, techName) => {
     <div class="content-sections">
       <n-divider />
 
-      <div class="projects-section">
-      <h2 :style="gradientStyle">Projects I've Worked On</h2>
-      <n-grid :cols="2" :x-gap="24" :y-gap="24">
-        <n-gi>
-          <div class="projectsCard" @click="router.push({ name: 'project' })">
-            <div class="project-title"><b>Explained Algorithms</b></div>
-            <div>
-              <n-text :depth="3">
-                Using real-life examples and actual Leetcode problems, I explain the algorithms and data structures in a
-                way
-                that is easy to understand and remember with implementation of the algorithm that can be viewed by the
-                user
-                visually.
-              </n-text>
-            </div>
-          </div>
-        </n-gi>
-      </n-grid>
-    </div>
+      <Projects />
     <n-divider></n-divider>
-    <div class="tech-stack">
-      <h1 :style="gradientStyle">Tech Stack</h1>
-      <div class="tech-categories">
-        <div v-for="category in categories" :key="category.id" class="category-section">
-          <h4 class="category-title">{{ category.name }}</h4>
-          <div class="tech-icons">
-            <n-tooltip v-for="tech in techStack.filter(t =>
-              Array.isArray(category.id)
-                ? category.id.includes(t.category)
-                : t.category === category.id
-            )" :key="tech.name" :trigger="'hover'" :placement="'top'">
-              <template #trigger>
-                <div class="tech-icon">
-                  <img :src="`https://api.iconify.design/${tech.icon.replace(':', '/')}.svg`" :alt="tech.name"
-                    class="tech-icon-img" />
-                </div>
-              </template>
-              {{ tech.name }}
-            </n-tooltip>
-          </div>
-        </div>
-      </div>
-    </div>
+    <TechStack />
     </div>
   </div>
 </template>
@@ -1913,7 +1874,7 @@ const createStarEffect = (event, techName) => {
   padding-top: 0 24px 24px;
   padding-left: 0 24px 24px;
   padding-right: 0 24px 24px;
-  max-width: 85%;
+  max-width: 85vw;
   margin: 0 auto;
   position: relative;
   box-sizing: border-box;
@@ -1922,7 +1883,7 @@ const createStarEffect = (event, techName) => {
 
 /* Subsequent content areas */
 .content-sections {
-  max-width: 85%;
+  max-width: 85vw;
   margin: 0 auto;
   padding-right: 24px;
   padding-left: 24px;
@@ -3041,97 +3002,6 @@ const createStarEffect = (event, techName) => {
   }
 }
 
-.projects-section {
-  margin-bottom: 64px;
-}
-
-.projects-section h2 {
-  font-size: 32px;
-  margin-bottom: 24px;
-}
-
-.projectsCard {
-  border-radius: 12px;
-  padding: 24px;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: var(--boxShadow-light);
-  background-color: rgba(58, 51, 83, 0.9);
-}
-
-.project-card:hover {
-  transform: translateY(-5px);
-  box-shadow: v-bind("isDarkMode ? '0 4px 12px rgba(255, 255, 255, 0.1)' : '0 4px 12px rgba(0, 0, 0, 0.1)'");
-}
-
-.tech-stack {
-  margin-bottom: 64px;
-}
-
-.tech-stack h3 {
-  font-size: 20px;
-  margin-bottom: 16px;
-  background: linear-gradient(90deg, #008CFF, #FF4D6D);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-}
-
-.tech-categories {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-.category-section {
-  background-color: v-bind("isDarkMode ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)'");
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.category-title {
-  font-size: 14px;
-  margin-bottom: 12px;
-  color: v-bind("isDarkMode ? '#e0e0e0' : '#333333'");
-}
-
-.tech-icons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.tech-icon {
-  width: 28px;
-  height: 28px;
-  padding: 5px;
-  border-radius: 6px;
-  background-color: v-bind("isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)'");
-  transition: all 0.2s ease-in-out;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.tech-icon:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.tech-icon-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: none;
-}
-
-:root[class='dark'] .tech-icon-img {
-  filter: brightness(0.95);
-}
-
 @media (max-width: 768px) {
   .hero-section {
     padding: 0 16px 16px;
@@ -3358,28 +3228,6 @@ const createStarEffect = (event, techName) => {
 
   .highlight-text {
     font-size: 12px;
-  }
-
-  .projects-section h2 {
-    font-size: 28px;
-  }
-
-  .tech-categories {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
-
-  .tech-icons {
-    gap: 6px;
-  }
-
-  .tech-icon {
-    width: 24px;
-    height: 24px;
-    padding: 4px;
-  }
-
-  .category-title {
-    font-size: 13px;
   }
 
   .scroll-indicator {
