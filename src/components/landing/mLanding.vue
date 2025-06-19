@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, inject } from 'vue'
 import { ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import mArticleResearch from './mArticleResearch.vue'
 
 const router = useRouter()
 const roles = ref(['Full-stack Developer', 'AI Enthusiast', 'Data Analyst'])
@@ -113,6 +114,8 @@ const gradientStyle = computed(() => ({
         </n-gi>
       </n-grid>
     </div>
+    <n-divider />
+    <mArticleResearch />
   </div>
 </template>
 

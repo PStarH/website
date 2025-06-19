@@ -7,6 +7,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import TechStack from './TechStack.vue'
 import Projects from './Projects.vue'
+import ArticleResearch from './ArticleResearch.vue'
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin)
 
@@ -1848,10 +1849,9 @@ const createStarEffect = (event, techName) => {
 
     <!-- Subsequent content areas -->
     <div class="content-sections">
-      <n-divider />
 
       <Projects />
-    <n-divider></n-divider>
+      <ArticleResearch />
     <TechStack />
     </div>
   </div>
