@@ -29,13 +29,13 @@
         
         <!-- Content Cards (Papers first, then Articles) -->
         <li 
-          :class="getCardClass(item.type)" 
-          v-for="(item, index) in allContent" 
+          :class="cardClasses[index]?.cardClass" 
+          v-for="(item, index) in contentCards" 
           :key="`content-${index}`"
           @click="handleCardClick(item)"
           :style="{ cursor: 'pointer' }"
         >
-          <div :class="getCardTypeClass(item.type)">{{ getCardTypeLabel(item.type) }}</div>
+          <div :class="cardClasses[index]?.typeClass">{{ getCardTypeLabel(item.type) }}</div>
           <div v-if="item.type === 'paper'" class="preprint-badge">Preprint</div>
           <div class="card-title" :title="item.title">{{ item.title }}</div>
           <div class="card-description" :title="item.description">{{ item.description }}</div>
@@ -89,6 +89,8 @@ let randomOffsets = ref([])
 // Binary digits data
 const binaryDigits = ref([])
 const binaryAnimationTimer = ref(null)
+let lastUpdateTime = 0
+const updateInterval = 16 // ~60fps, update every 16ms
 
 const gradientStyle = computed(() => ({
   background: 'linear-gradient(90deg, #008CFF, #FF4D6D)',
@@ -101,10 +103,22 @@ const gradientStyle = computed(() => ({
 // Import all content data
 const allContent = ref(getAllContent())
 
+// Computed properties for better performance
+const contentCards = computed(() => allContent.value)
+const cardClasses = computed(() => {
+  const classes = {}
+  allContent.value.forEach((item, index) => {
+    classes[index] = {
+      cardClass: item.type === 'paper' ? 'paper-card' : 'article-card',
+      typeClass: item.type === 'paper' ? 'card-type paper-type' : 'card-type article-type'
+    }
+  })
+  return classes
+})
+
 // Initialize binary digits
 const initBinaryDigits = () => {
   const digitCount = 15 // Further reduced for cleaner look
-  console.log('Initializing binary digits...') // Debug log
   
   binaryDigits.value = Array.from({ length: digitCount }, (_, index) => {
     // Generate 8-bit binary with first 4 bits static, last 4 bits dynamic
@@ -126,14 +140,27 @@ const initBinaryDigits = () => {
       glowIntensity: Math.random() * 0.5 + 0.6 // Higher glow intensity: 0.6 to 1.1
     }
   })
-  
-  console.log('Binary digits initialized:', binaryDigits.value.length) // Debug log
 }
 
 // Update binary digits positions and values
 const updateBinaryDigits = (scrollProgress = 0) => {
+  const currentTime = Date.now()
+  
+  // Throttle updates to improve performance
+  if (currentTime - lastUpdateTime < updateInterval) {
+    return
+  }
+  lastUpdateTime = currentTime
+  
+  // Cache window dimensions
+  const windowWidth = window.innerWidth
+  const windowHeight = window.innerHeight
+  const centerX = windowWidth / 2
+  const centerY = windowHeight / 2
+  const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY)
+  
   binaryDigits.value.forEach((digit, index) => {
-    // Update change timer
+    // Update change timer less frequently
     digit.changeTimer += 1
     
     // Change last 4 bits with smoother timing (every 90-150 frames = 1.5-2.5 seconds)
@@ -144,7 +171,6 @@ const updateBinaryDigits = (scrollProgress = 0) => {
       
       // Add a brief glow effect when changing
       digit.glowIntensity = Math.min(1, digit.glowIntensity + 0.3)
-      console.log(`Binary digit ${index} changed to: ${digit.value}`) // Debug log for changes
     }
     
     // Smooth horizontal movement
@@ -159,22 +185,19 @@ const updateBinaryDigits = (scrollProgress = 0) => {
     
     // Smooth wrapping with repositioning
     if (digit.x < -250) {
-      digit.x = window.innerWidth + 250
-      digit.y = (Math.random() * 0.8 + 0.1) * window.innerHeight // Reposition vertically
+      digit.x = windowWidth + 250
+      digit.y = (Math.random() * 0.8 + 0.1) * windowHeight
       if (Math.random() > 0.6) digit.movingRight = !digit.movingRight
     }
-    if (digit.x > window.innerWidth + 250) {
+    if (digit.x > windowWidth + 250) {
       digit.x = -250
-      digit.y = (Math.random() * 0.8 + 0.1) * window.innerHeight // Reposition vertically
+      digit.y = (Math.random() * 0.8 + 0.1) * windowHeight
       if (Math.random() > 0.6) digit.movingRight = !digit.movingRight
     }
     
-    // Dynamic opacity based on distance from center and glow
-    const centerX = window.innerWidth / 2
-    const centerY = window.innerHeight / 2
-    const distance = Math.sqrt(Math.pow(digit.x - centerX, 2) + Math.pow(digit.y - centerY, 2))
-    const maxDistance = Math.sqrt(Math.pow(centerX, 2) + Math.pow(centerY, 2))
-    const baseOpacity = 0.3 + (1 - distance / maxDistance) * 0.4 // Much higher base opacity
+    // Optimized opacity calculation
+    const distance = Math.sqrt((digit.x - centerX) ** 2 + (digit.y - centerY) ** 2)
+    const baseOpacity = 0.3 + (1 - distance / maxDistance) * 0.4
     digit.opacity = baseOpacity * digit.glowIntensity
   })
 }
@@ -184,25 +207,30 @@ const getBinaryDigitStyle = (index) => {
   const digit = binaryDigits.value[index]
   if (!digit) return { display: 'none' }
   
+  // Cache frequently used calculations
+  const opacity = Math.max(0.25, digit.opacity)
+  const glowIntensity = digit.glowIntensity
+  const colorOpacity = 0.4 + glowIntensity * 0.4
+  const shadowBlur1 = 6 + glowIntensity * 12
+  const shadowBlur2 = 12 + glowIntensity * 24
+  const shadowOpacity1 = 0.4 + glowIntensity * 0.5
+  const shadowOpacity2 = 0.2 + glowIntensity * 0.3
+  
   return {
     position: 'absolute',
     left: `${digit.x}px`,
     top: `${digit.y}px`,
-    fontSize: `${digit.size * 16 + 10}px`, // Cleaner size calculation
-    opacity: Math.max(0.25, digit.opacity), // Higher minimum opacity
-    transition: 'opacity 0.3s ease-out',
+    fontSize: `${digit.size * 16 + 10}px`,
+    opacity,
     pointerEvents: 'none',
     userSelect: 'none',
-    fontFamily: 'SF Mono, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-    letterSpacing: '1px',
-    color: `rgba(102, 126, 234, ${0.4 + digit.glowIntensity * 0.4})`, // Much more visible base color
-    textShadow: `
-      0 0 ${6 + digit.glowIntensity * 12}px rgba(102, 126, 234, ${0.4 + digit.glowIntensity * 0.5}),
-      0 0 ${12 + digit.glowIntensity * 24}px rgba(102, 126, 234, ${0.2 + digit.glowIntensity * 0.3})
-    `, // Stronger glow effect
+    color: `rgba(102, 126, 234, ${colorOpacity})`,
+    textShadow: `0 0 ${shadowBlur1}px rgba(102, 126, 234, ${shadowOpacity1}), 0 0 ${shadowBlur2}px rgba(102, 126, 234, ${shadowOpacity2})`,
     zIndex: 1,
     fontWeight: '400',
-    filter: 'none' // Remove blur for better visibility
+    fontFamily: 'SF Mono, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+    letterSpacing: '1px',
+    willChange: 'transform, opacity'
   }
 }
 
@@ -563,6 +591,8 @@ onUnmounted(() => {
   pointer-events: none;
   user-select: none;
   animation: float 8s ease-in-out infinite alternate;
+  transform: translateZ(0); /* Force hardware acceleration */
+  backface-visibility: hidden; /* Improve performance */
 }
 
 @keyframes float {
