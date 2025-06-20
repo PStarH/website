@@ -193,7 +193,7 @@ const awards = ref([
   {
     title: 'John Locke',
     year: '2023',
-    subject: 'Philosophy',
+    subject: 'History',
     icon: '🤔',
     color: '#795548',
     description: 'John Locke Institute Essay Competition - Academic writing competition covering philosophy, politics, economics, and related subjects.'
