@@ -15,4 +15,20 @@ export const projects = [
         type: "algorithm",
         color: "#ffdcda"
     },
+    {
+        name: "DFS Maze Solver",
+        start: 1721204494033,
+        routerKey: "projects-dfs",
+        description: "Learn how Depth-First Search (DFS) algorithm can solve complex maze problems. This blog explains the recursive nature of DFS, demonstrates its implementation with backtracking, and provides an interactive maze visualization where you can watch the algorithm explore paths to find the exit.",
+        type: "algorithm",
+        color: "#ffdcda"
+    },
+    {
+        name: "Knapsack problem",
+        start: 1721204594033,
+        routerKey: "projects-dp",
+        description: "Explore the power of Dynamic Programming through the classic 0/1 Knapsack problem. Understand how to break down complex problems into subproblems, build solution tables, and achieve optimal results. Includes step-by-step visualization of the DP table construction process.",
+        type: "algorithm",
+        color: "#ffdcda"
+    },
 ]; 

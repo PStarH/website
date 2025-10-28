@@ -42,6 +42,40 @@
                     <div class="tag mcts">Monte Carlo</div>
                 </div>
             </n-gi>
+            <n-gi>
+                <div class="projectsCard" @click="router.push({ name: 'projects-dfs' })">
+                    <div class="project-title"><b>DFS Maze Solver</b></div>
+                    <div>
+                        <n-text :depth="3">
+                            Learn how Depth-First Search (DFS) algorithm can solve complex maze problems. This blog 
+                            explains the recursive nature of DFS, demonstrates its implementation with <b>backtracking</b>, 
+                            and provides an interactive maze visualization where you can watch the algorithm explore 
+                            paths to find the exit.
+                        </n-text>
+                    </div>
+                    <div class="tags">
+                        <div class="tag dfs">DFS</div>
+                        <div class="tag backtracking">Backtracking</div>
+                    </div>
+                </div>
+            </n-gi>
+            <n-gi>
+                <div class="projectsCard" @click="router.push({ name: 'projects-dp' })">
+                    <div class="project-title"><b>Dynamic Programming - Knapsack</b></div>
+                    <div>
+                        <n-text :depth="3">
+                            Explore the power of Dynamic Programming through the classic 0/1 Knapsack problem. 
+                            Understand how to break down complex problems into subproblems, build solution tables, 
+                            and achieve optimal results. Includes step-by-step visualization of the <b>DP table</b> 
+                            construction process.
+                        </n-text>
+                    </div>
+                    <div class="tags">
+                        <div class="tag dp">Dynamic Programming</div>
+                        <div class="tag optimization">Optimization</div>
+                    </div>
+                </div>
+            </n-gi>
         </n-grid>
         <div class="subHead">Example Projects</div>
         <n-grid cols="1" :x-gap="12" :y-gap="8" class="example-projects-grid">
@@ -217,6 +251,22 @@ const router = useRouter();
 
 .binary-search {
     background-color: rgba(66, 248, 15, 0.5);
+}
+
+.dfs {
+    background-color: rgba(255, 152, 0, 0.5);
+}
+
+.backtracking {
+    background-color: rgba(156, 39, 176, 0.5);
+}
+
+.dp {
+    background-color: rgba(233, 30, 99, 0.5);
+}
+
+.optimization {
+    background-color: rgba(0, 188, 212, 0.5);
 }
 
 .project-item {

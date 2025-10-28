@@ -258,7 +258,7 @@ function scrollToFirstThought() {
 <template>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <div ref="scrollContainer" style="height: 100%; overflow: hidden;">
+    <div ref="scrollContainer" style="height: 100%; overflow-y: auto; overflow-x: hidden;">
         <Transition>
             <n-anchor ref="anchorRef" affix :trigger-top="88" :top="88"
                 style="z-index: 1; padding: 1.5rem; float: left;">

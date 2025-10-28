@@ -31,6 +31,16 @@ const routes = [
                         path: "reversi",
                         name: "projects-reversi",
                         component: () => store.state.display.isMobile ? import('../components/project/algorithms/mReversi.vue') : import('../components/project/algorithms/Reversi.vue')
+                    },
+                    {
+                        path: "dfs-maze",
+                        name: "projects-dfs",
+                        component: () => store.state.display.isMobile ? import('../components/project/algorithms/mDfs.vue') : import('../components/project/algorithms/dfs.vue')
+                    },
+                    {
+                        path: "dynamic-programming",
+                        name: "projects-dp",
+                        component: () => store.state.display.isMobile ? import('../components/project/algorithms/mDynamicProgramming.vue') : import('../components/project/algorithms/dynamicProgramming.vue')
                     }
                 ]
             },
