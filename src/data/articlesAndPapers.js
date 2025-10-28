@@ -53,20 +53,20 @@ export const articlesAndPapers = [
     url: "https://medium.com/@sampan090611/which-ai-agent-framework-to-use-dify-langchain-autogen-9-top-used-framework-explained-d9d16704ec24",
     external: true,
   },
-  {
-    title: "Chinese CoT LLM Kimi K1.5 Unveiled: The Theory, Features, and Key Differences from Deepseek-R1",
-    type: "article",
-    description: "The newly released Kimi K1.5 is a reasoning-capable multimodal large model trained using reinforcement learning (RL). Kimi K1.5 establishes a simple yet effective RL algorithm through extended long-context capabilities and an improved strategy optimization approach. This algorithm avoids reliance on more complex techniques, such as Monte Carlo Tree Search, value functions, or reward model processes.",
-    url: "https://medium.com/@sampan090611/chinese-cot-llm-kimi-k1-5-unveiled-the-theory-features-and-key-differences-from-deepseek-r1-8ae964161573",
-    external: true,
-  },
-  {
-    title: "GTC 2025: Decoding the future of AI — NVIDIA Leading the AI Revolution",
-    type: "article",
-    description: "In March 2025, in San Jose, NVIDIA’s annual GTC (GPU Technology Conference) once again captured the global tech community’s attention. However, this year was different. The conference was not just about showcasing technological advancements;",
-    url: "https://medium.com/@sampan090611/gtc-2025-decoding-the-future-of-ai-nvidia-leading-the-ai-revolution-f882056c6b70",
-    external: true,
-  },
+  // {
+  //   title: "Chinese CoT LLM Kimi K1.5 Unveiled: The Theory, Features, and Key Differences from Deepseek-R1",
+  //   type: "article",
+  //   description: "The newly released Kimi K1.5 is a reasoning-capable multimodal large model trained using reinforcement learning (RL). Kimi K1.5 establishes a simple yet effective RL algorithm through extended long-context capabilities and an improved strategy optimization approach. This algorithm avoids reliance on more complex techniques, such as Monte Carlo Tree Search, value functions, or reward model processes.",
+  //   url: "https://medium.com/@sampan090611/chinese-cot-llm-kimi-k1-5-unveiled-the-theory-features-and-key-differences-from-deepseek-r1-8ae964161573",
+  //   external: true,
+  // },
+  // {
+  //   title: "GTC 2025: Decoding the future of AI — NVIDIA Leading the AI Revolution",
+  //   type: "article",
+  //   description: "In March 2025, in San Jose, NVIDIA’s annual GTC (GPU Technology Conference) once again captured the global tech community’s attention. However, this year was different. The conference was not just about showcasing technological advancements;",
+  //   url: "https://medium.com/@sampan090611/gtc-2025-decoding-the-future-of-ai-nvidia-leading-the-ai-revolution-f882056c6b70",
+  //   external: true,
+  // },
   {
     title: "QwQ-32B: A Breakthrough in Dense Language Models",
     type: "article",
@@ -90,10 +90,10 @@ export const articlesAndPapers = [
     external: true,
   },
   {
-    title: "Test-Time Training (TTT): A Comprehensive Exploration of Its Theory, Applications, and Future Implications",
+    title: "Vue 3.6: Vapor Mode opening virtual DOM era",
     type: "article",
-    description: "TTT, also known as test-time adaptation or online adaptation, enables models to adapt their parameters during the inference phase based on the characteristics of each individual test input. Unlike traditional methods that rely on a static model trained on a fixed dataset, TTT empowers models to dynamically adjust their behavior, thereby enhancing their robustness and generalization capabilities.",
-    url: "https://medium.com/@sampan090611/test-time-training-ttt-a-comprehensive-exploration-of-its-theory-applications-and-future-46a934481782",
+    description: "Vue 3.6’s Vapor Mode lets you skip the virtual DOM and work directly with real DOM. You add a single flag, gain huge speed and a much smaller bundle. Here’s how it works.",
+    url: "https://medium.com/@sampan090611/vue-3-6-vapor-mode-opening-virtual-dom-era-dfd10023cd05",
     external: true,
   },
   {
@@ -104,10 +104,10 @@ export const articlesAndPapers = [
     external: true,
   },
   {
-    title: "Comprehensive Guide to Choosing the Right Database for RAG Implementation: Leveraging Elasticsearch, Vector Databases, and Knowledge Graphs",
+    title: "Experiences on Claude Code’s subagent, and little tips for using Claude Code",
     type: "article",
-    description: "The effectiveness of a RAG system depends largely on the underlying knowledge base that powers the retrieval process. The right knowledge base can significantly improve the retrieval accuracy and speed, while also enhancing the overall quality of the generated responses.",
-    url: "https://medium.com/@sampan090611/comprehensive-guide-to-choosing-the-right-database-for-rag-implementation-leveraging-47e7c6583fdc",
+    description: "Claude have recently updated its sub-agent function in Claude Code, allowing the user to customize different agents. Moreover, it also released its new Claude-Opus-4.1, which Windsurf claims to have the same improvement as Claude 3.7 to Claude 4 (Haven’t really feel it by now). Anthropic’s models are by far the best in coding undoubtedly.",
+    url: "https://medium.com/@sampan090611/experiences-on-claude-codes-subagent-and-little-tips-for-using-claude-code-c4759cd375a7",
     external: true,
   },
 ];

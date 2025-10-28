@@ -85,6 +85,8 @@ let currentIndex = ref(0)
 let cardTimeline = null
 let randomTilts = ref([])
 let randomOffsets = ref([])
+let lastScrollUpdate = 0
+const scrollUpdateThrottle = 16 // Throttle scroll updates to ~60fps
 
 // Binary digits data
 const binaryDigits = ref([])
@@ -247,11 +249,11 @@ const getDynamicValues = (index, scrollProgress) => {
   const tiltFreq = 0.6 + (index % 7) * 0.2 // Different tilt frequencies (0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8)
   
   // Much slower time progression to avoid "twitching"
-  const time = scrollProgress * 2 + index * 1.5 // Reduced speed dramatically
+  const time = scrollProgress * 1 + index * 1.5 // Further reduced speed to minimize jitter
   
-  // Each card gets unique animation patterns
-  const dynamicTilt = (randomTilts.value[index] || 0) + Math.sin(time * tiltFreq) * 2 // Reduced amplitude to ±2 degrees
-  const dynamicOffset = (randomOffsets.value[index] || 0) + Math.cos(time * baseFreq) * 8 // Reduced amplitude to ±8px
+  // Each card gets unique animation patterns with reduced amplitude
+  const dynamicTilt = (randomTilts.value[index] || 0) + Math.sin(time * tiltFreq) * 1 // Reduced amplitude to ±1 degree
+  const dynamicOffset = (randomOffsets.value[index] || 0) + Math.cos(time * baseFreq) * 4 // Reduced amplitude to ±4px
   
   return { dynamicTilt, dynamicOffset }
 }
@@ -353,14 +355,17 @@ function createCardTimeline(cards) {
     })
   })
 
-  // Create timeline for card animations with real-time progress calculation
+  // Create timeline for card animations with faster scroll speed
   const tl = gsap.timeline({
     scrollTrigger: {
       trigger: '.article-research-section',
       pin: true,
+      pinSpacing: true, // Ensure proper spacing
       start: 'top top',
-      end: () => `+=${cards.length * 100}%`,
-      scrub: 1.2, // More responsive scrub for smoother bidirectional scrolling
+      end: () => `+=${cards.length * 80}%`, // Adjusted for better spacing
+      scrub: 0.8, // Reduced from 1.2 for faster response
+      anticipatePin: 1, // Prevent layout shift
+      invalidateOnRefresh: true, // Recalculate on window resize
       snap: {
         snapTo: (value) => {
           // Simplified snap function for consistent behavior
@@ -388,6 +393,14 @@ function createCardTimeline(cards) {
         ease: 'power2.out'
       },
       onUpdate: (self) => {
+        const currentTime = Date.now()
+        
+        // Throttle updates to prevent jitter during fast scrolling
+        if (currentTime - lastScrollUpdate < scrollUpdateThrottle) {
+          return
+        }
+        lastScrollUpdate = currentTime
+        
         const progress = self.progress
         const exactIndex = progress * (cards.length - 1)
         const cardIndex = Math.round(exactIndex)
@@ -446,8 +459,9 @@ function updateCardsPosition(cards, exactIndex) {
           scale: 1,
           opacity: 1,
           zIndex: 100,
-          duration: 0.4,
-          ease: "power2.out"
+          duration: 0.6, // Increased duration for smoother transitions
+          ease: "power1.out", // Gentler easing
+          overwrite: "auto" // Prevent animation conflicts
         })
       } else if (absOffset <= 1.5) {
         // Adjacent cards - interpolated positioning
@@ -461,8 +475,9 @@ function updateCardsPosition(cards, exactIndex) {
           scale: baseScale,
           opacity: baseOpacity,
           zIndex: Math.round(85 - absOffset * 10),
-          duration: 0.4,
-          ease: "power2.out"
+          duration: 0.6, // Increased duration for smoother transitions
+          ease: "power1.out", // Gentler easing
+          overwrite: "auto" // Prevent animation conflicts
         })
       } else {
         // Outer visible cards
@@ -475,8 +490,9 @@ function updateCardsPosition(cards, exactIndex) {
           scale: baseScale,
           opacity: baseOpacity,
           zIndex: Math.round(70 - absOffset * 8),
-          duration: 0.4,
-          ease: "power2.out"
+          duration: 0.6, // Increased duration for smoother transitions
+          ease: "power1.out", // Gentler easing
+          overwrite: "auto" // Prevent animation conflicts
         })
       }
     } else {
@@ -492,8 +508,9 @@ function updateCardsPosition(cards, exactIndex) {
         scale: 0.5,
         opacity: 0,
         zIndex: 1,
-        duration: 0.4,
-        ease: "power2.out"
+        duration: 0.6, // Increased duration for smoother transitions
+        ease: "power1.out", // Gentler easing
+        overwrite: "auto" // Prevent animation conflicts
       })
     }
   })
@@ -561,12 +578,15 @@ onUnmounted(() => {
 <style scoped>
 .article-research-section {
   width: 100%;
+  min-height: 100vh;
   height: 100vh;
   position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 2rem 0; /* Add consistent vertical padding */
+  padding: 2rem 0;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .binary-background {
