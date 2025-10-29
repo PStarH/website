@@ -1,18 +1,31 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed, inject, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, inject, nextTick, watchEffect } from 'vue'
 import { ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
+import { VueLenis, useLenis } from 'lenis/vue'
 import TechStack from './TechStack.vue'
-import Projects from './Projects.vue'
 import ArticleResearch from './ArticleResearch.vue'
 import Awards from './Awards.vue'
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin)
 
 const router = useRouter()
+
+// Lenis smooth scroll setup
+const lenisRef = ref(null)
+const lenisOptions = {
+  lerp: 0.08, // Slightly slower for better control (from 0.1)
+  duration: 1.2,
+  smoothWheel: true,
+  syncTouch: false, // Better performance on touch devices
+  touchMultiplier: 2,
+  infinite: false,
+  wheelMultiplier: 0.8, // Reduce wheel scroll speed for better control
+}
+
 const roles = ref(['Full-stack Developer', 'AI Enthusiast', 'Data Analyst', 'NLP Developer', 'Creative Coder', 'Algorithm Designer', 'Automation Guru'])
 const currentRoleIndex = ref(0)
 const typedText = ref('')
@@ -71,6 +84,197 @@ const lastCodeforcesUpdate = ref(null) // Add Codeforces update tracking
 const isUsingCodeforceseFallbackData = ref(false) // Add Codeforces fallback flag
 let refreshInterval = null
 
+// Integrate Lenis with GSAP ScrollTrigger
+let scrollTimeout = null
+let lastScrollY = 0
+let scrollDirection = 0
+let cachedSections = [] // Cache sections for performance
+let isSnapping = false // Flag to prevent snap during snap animation
+const SNAP_SETTINGS = Object.freeze({
+  previousThreshold: 0.08, // Require user to get closer to top before snapping upward
+  nextThreshold: 0.82, // Small adjustment to avoid premature downward snaps
+  minDistance: 80 // Minimum pixels away from target before triggering snap
+})
+
+watchEffect((onInvalidate) => {
+  if (!lenisRef.value?.lenis) return
+
+  // Update ScrollTrigger on Lenis scroll
+  lenisRef.value.lenis.on('scroll', ScrollTrigger.update)
+
+  // Add Lenis raf to GSAP ticker for smooth animations
+  function update(time) {
+    lenisRef.value.lenis.raf(time * 1000)
+  }
+  gsap.ticker.add(update)
+
+  // Disable lag smoothing for immediate responsiveness
+  gsap.ticker.lagSmoothing(0)
+
+  // Track scroll direction and detect when scrolling has stopped or slowing down
+  lenisRef.value.lenis.on('scroll', ({ scroll, velocity }) => {
+    // Don't process scroll events during snap animation
+    if (isSnapping) return
+
+    // Track scroll direction
+    if (scroll > lastScrollY) {
+      scrollDirection = 1 // scrolling down
+    } else if (scroll < lastScrollY) {
+      scrollDirection = -1 // scrolling up
+    }
+    lastScrollY = scroll
+
+    // Clear previous timeout
+    if (scrollTimeout) clearTimeout(scrollTimeout)
+
+    // Detect when scrolling has slowed down significantly
+    if (Math.abs(velocity) < 0.05) {
+      scrollTimeout = setTimeout(() => {
+        // Double check before snapping
+        if (!isSnapping) {
+          snapToNearestSection()
+        }
+      }, 100)
+    }
+  })
+
+  // Cleanup on component unmount
+  onInvalidate(() => {
+    gsap.ticker.remove(update)
+    if (scrollTimeout) clearTimeout(scrollTimeout)
+  })
+})
+
+// Improved section snap with damping feel
+const snapToNearestSection = () => {
+  if (!lenisRef.value?.lenis || isSnapping) return
+
+  // Set flag to prevent cascading snaps
+  isSnapping = true
+
+  // Use cached sections if available, otherwise dynamically query all sections
+  let sections = cachedSections
+
+  if (cachedSections.length === 0) {
+    // Dynamically get all sections including all content-sections children
+    const contentSections = Array.from(document.querySelectorAll('.content-sections > *'))
+    sections = [
+      document.querySelector('.hero-section'),
+      document.querySelector('.pyramid-section'),
+      ...contentSections
+    ].filter(Boolean)
+
+    // Cache sections for next time
+    if (sections.length > 0) {
+      cachedSections = sections
+    }
+  }
+
+  if (sections.length === 0) {
+    isSnapping = false
+    return
+  }
+
+  const scrollY = lenisRef.value.lenis.scroll
+  const windowHeight = window.innerHeight
+
+  // Special case: if we're at the very top (within 50px), always snap to absolute top
+  if (scrollY < 50) {
+    lenisRef.value.lenis.scrollTo(0, {
+      duration: 0.4,
+      easing: (t) => 1 - Math.pow(1 - t, 3),
+      lock: true,
+      onComplete: () => {
+        isSnapping = false
+      }
+    })
+    return
+  }
+
+  // Find current section (the one we're viewing the most)
+  let nearestSection = sections[0]
+  let minDistance = Infinity
+  let currentSectionIndex = 0
+
+  sections.forEach((section, index) => {
+    const sectionTop = section.offsetTop
+    const sectionBottom = sectionTop + section.offsetHeight
+    const sectionCenter = (sectionTop + sectionBottom) / 2
+    const viewportCenter = scrollY + windowHeight / 2
+
+    // Calculate how much of this section is in viewport
+    const distance = Math.abs(viewportCenter - sectionCenter)
+
+    if (distance < minDistance) {
+      minDistance = distance
+      nearestSection = section
+      currentSectionIndex = index
+    }
+  })
+
+  // Calculate position within current section (0 to 1)
+  const sectionTop = nearestSection.offsetTop
+  const sectionHeight = nearestSection.offsetHeight
+  const positionInSection = (scrollY - sectionTop) / sectionHeight
+
+  // Determine target section based on position and scroll direction
+  let targetSection = nearestSection
+
+  // Check if this is the last section
+  const isLastSection = currentSectionIndex === sections.length - 1
+
+  // Check if we're near the bottom of the page
+  const documentHeight = document.documentElement.scrollHeight
+  const viewportBottom = scrollY + windowHeight
+  const distanceFromBottom = documentHeight - viewportBottom
+  const nearPageBottom = distanceFromBottom < 100 // Within 100px of bottom
+
+  // Only snap to next/previous if we're near the edges AND scrolling in that direction
+  if (scrollDirection > 0 && positionInSection > SNAP_SETTINGS.nextThreshold && currentSectionIndex < sections.length - 1) {
+    // Scrolling down and near bottom (>80%) - snap to next section
+    targetSection = sections[currentSectionIndex + 1]
+  } else if (scrollDirection < 0 && positionInSection < SNAP_SETTINGS.previousThreshold && currentSectionIndex > 0) {
+    // Scrolling up and near top (<20%) - snap to previous section
+    targetSection = sections[currentSectionIndex - 1]
+  } else if (isLastSection && (positionInSection > 0.3 || nearPageBottom)) {
+    // Special case: if on last section and either:
+    // - in bottom 70% of section, OR
+    // - near the page bottom
+    // Don't snap - allow viewing all content including bottom
+    isSnapping = false
+    return
+  } else {
+    // In the middle (20%-80%) or wrong direction - stay on current section
+    targetSection = nearestSection
+  }
+
+  // Special handling for hero-section: snap to absolute top (0) instead of section top
+  const isHeroSection = targetSection === sections[0]
+  const targetPosition = isHeroSection ? 0 : targetSection.offsetTop
+
+  // Only snap if we're not already very close to target
+  const distanceToTarget = Math.abs(targetPosition - scrollY)
+  const minDistanceForSnap = Math.max(SNAP_SETTINGS.minDistance, windowHeight * 0.1)
+  if (distanceToTarget > minDistanceForSnap) {
+    lenisRef.value.lenis.scrollTo(isHeroSection ? 0 : targetSection, {
+      offset: isHeroSection ? 0 : 8, // No offset for hero, 8px offset for others
+      duration: 0.6, // Faster snap for more responsive feel (from 0.8s)
+      easing: (t) => {
+        // Custom easing for damping feel - quick deceleration
+        return 1 - Math.pow(1 - t, 3)
+      },
+      lock: true,
+      onComplete: () => {
+        // Reset flag when snap animation completes
+        isSnapping = false
+      }
+    })
+  } else {
+    // If we're already close to target, just reset the flag
+    isSnapping = false
+  }
+}
+
 onMounted(() => {
   typeNextRole()
   setInterval(() => {
@@ -80,7 +284,7 @@ onMounted(() => {
   // Wait for DOM rendering to complete before executing animations
   nextTick(() => {
     animateSkills()
-    setupSmoothScroll()
+    // setupSmoothScroll() - Disabled to allow scroll-snap to work
     setupPyramidAnimation()
     setupVortexAnimation() // Now creates snowflake effect
     setupAvatarTiltEffect() // Add avatar tilt effect
@@ -114,6 +318,8 @@ onUnmounted(() => {
   }
 })
 
+// Disabled: Using CSS scroll-snap instead
+/*
 function setupSmoothScroll() {
   // Only add scroll snap when user actively scrolls to statistics section
   ScrollTrigger.create({
@@ -164,6 +370,7 @@ function setupSmoothScroll() {
     }
   })
 }
+*/
 
 // Clear stale cache data to ensure fresh experience
 function clearStaleCache() {
@@ -768,7 +975,7 @@ function createOptimizedParticles(selector) {
   const centerY = rect.top + rect.height / 2
 
   // Create fewer particles for better performance
-  const particleCount = 6 // Reduced from 12
+  const particleCount = 4 // Optimized: Reduced from 6 to 4 (33% reduction)
   const fragment = document.createDocumentFragment()
   
   for (let i = 0; i < particleCount; i++) {
@@ -1193,7 +1400,7 @@ function createOptimizedImpactExplosion(side) {
   const rect = container.getBoundingClientRect()
   
   // Create fewer but more visible particles for better performance
-  const particleCount = 8 // Reduced from 15 to 8
+  const particleCount = 5 // Optimized: Reduced from 8 to 5 (38% reduction)
   const fragment = document.createDocumentFragment() // Use fragment for batch DOM operations
   
   for (let i = 0; i < particleCount; i++) {
@@ -1300,7 +1507,7 @@ function createSnowflakeParticles() {
 
   // Create fewer snowflakes for better performance
   const fragment = document.createDocumentFragment()
-  for (let i = 0; i < 25; i++) { // Reduced from 40 to 25 snowflakes
+  for (let i = 0; i < 12; i++) { // Optimized: Reduced from 25 to 12 snowflakes (50% reduction)
     const snowflake = document.createElement('div')
     const color = snowflakeColors[i % snowflakeColors.length]
     const shape = snowflakeShapes[i % snowflakeShapes.length]
@@ -1494,9 +1701,9 @@ const createStarEffect = (event, techName) => {
   }
   
   const colors = techColors[techName] || ['#FFD700', '#FFA500', '#FF6347']
-  
-  // Create 8-12 stars
-  const starCount = 8 + Math.random() * 4
+
+  // Optimized: Create 5-8 stars (reduced from 8-12)
+  const starCount = 5 + Math.random() * 3
   
   for (let i = 0; i < starCount; i++) {
     const star = document.createElement('div')
@@ -1567,9 +1774,10 @@ const createStarEffect = (event, techName) => {
 </script>
 
 <template>
-  <div class="homepage">
-    <!-- First section: Introduction and skills -->
-    <section class="hero-section">
+  <VueLenis ref="lenisRef" :options="lenisOptions" root>
+    <div class="homepage">
+      <!-- First section: Introduction and skills -->
+      <section class="hero-section">
       <div class="hero-content">
         <n-grid :cols="24" :x-gap="24" style="align-items: center;">
           <n-gi :span="8">
@@ -1852,11 +2060,11 @@ const createStarEffect = (event, techName) => {
     <div class="content-sections">
 
       <Awards />
-      <Projects />
       <ArticleResearch />
     <TechStack />
     </div>
   </div>
+  </VueLenis>
 </template>
 
 <style scoped>
@@ -1868,7 +2076,8 @@ const createStarEffect = (event, techName) => {
 
 /* First section styles - reduced height */
 .hero-section {
-  min-height: 80vh;
+  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1890,6 +2099,12 @@ const createStarEffect = (event, techName) => {
   padding-right: 24px;
   padding-left: 24px;
   padding-bottom: 24px;
+}
+
+/* Ensure each section takes full viewport height - but don't force display */
+.content-sections > * {
+  min-height: 100vh;
+  padding: 48px 0;
 }
 
 /* Scroll down indicator animation */
@@ -2322,6 +2537,7 @@ const createStarEffect = (event, techName) => {
 /* Pyramid Section Styles */
 .pyramid-section {
   min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;

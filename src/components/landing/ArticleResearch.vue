@@ -65,28 +65,33 @@
 </template>
 
 <script setup>
-import { inject, computed, ref, onMounted, onUnmounted } from 'vue'
+import { inject, computed, ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import { getAllContent } from '@/data/articlesAndPapers.js'
-
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin)
 
 const isDarkMode = inject('isDarkMode', ref(true))
 const router = useRouter()
 const galleryRef = ref(null)
 const cardsRef = ref(null)
 const binaryBackgroundRef = ref(null)
+const TWO_PI = Math.PI * 2
+const RAD_TO_DEG = 180 / Math.PI
+
+// Stabilize GSAP ticker to avoid catch-up jitter
+gsap.ticker.fps(60)
+gsap.ticker.lagSmoothing(500, 33) // Re-enable lag smoothing with reasonable threshold
 
 // GSAP variables
 let currentIndex = ref(0)
-let cardTimeline = null
-let randomTilts = ref([])
 let randomOffsets = ref([])
-let lastScrollUpdate = 0
-const scrollUpdateThrottle = 16 // Throttle scroll updates to ~60fps
+let stopAutoRotate = null
+const cardElements = ref([])
+const carouselState = { rotation: 0 }
+let hasInitializedCarousel = false
+let intersectionObserver = null
+const carouselProgress = ref(0)
+const cardBaseAngles = ref([])
 
 // Binary digits data
 const binaryDigits = ref([])
@@ -237,25 +242,11 @@ const getBinaryDigitStyle = (index) => {
 }
 
 // Generate random values for each card
-const generateRandomValues = () => {
-  randomTilts.value = allContent.value.map(() => (Math.random() - 0.5) * 8) // -4 to 4 degrees
-  randomOffsets.value = allContent.value.map(() => (Math.random() - 0.5) * 30) // -15 to 15 pixels
-}
-
-// Generate dynamic animation values based on scroll progress
-const getDynamicValues = (index, scrollProgress) => {
-  // Create unique frequencies for each card to avoid synchronized movement
-  const baseFreq = 0.8 + (index % 5) * 0.3 // Different base frequencies (0.8, 1.1, 1.4, 1.7, 2.0)
-  const tiltFreq = 0.6 + (index % 7) * 0.2 // Different tilt frequencies (0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8)
-  
-  // Much slower time progression to avoid "twitching"
-  const time = scrollProgress * 1 + index * 1.5 // Further reduced speed to minimize jitter
-  
-  // Each card gets unique animation patterns with reduced amplitude
-  const dynamicTilt = (randomTilts.value[index] || 0) + Math.sin(time * tiltFreq) * 1 // Reduced amplitude to ±1 degree
-  const dynamicOffset = (randomOffsets.value[index] || 0) + Math.cos(time * baseFreq) * 4 // Reduced amplitude to ±4px
-  
-  return { dynamicTilt, dynamicOffset }
+const generateRandomValues = (cardCount) => {
+  randomOffsets.value = Array.from({ length: cardCount }, () => (Math.random() - 0.5) * 24)
+  if (cardCount > 0) {
+    randomOffsets.value[0] = 0
+  }
 }
 
 // Helper methods for rendering
@@ -290,253 +281,132 @@ const handleViewMoreClick = () => {
   window.open('https://medium.com/@sampan090611', '_blank', 'noopener,noreferrer')
 }
 
-// GSAP functions
-function createCardTimeline(cards) {
-  // Generate random values for each card
-  generateRandomValues()
-  
-  // Initialize all cards positioned in a spread layout with title card as center
+function updateCardsPosition(cards) {
+  if (!cards.length) return
+
+  const totalCards = cards.length
+  const radius = 900
+  const depth = 220
+  const verticalSpread = 38
+  const centerYOffset = 32
+  const angleStep = TWO_PI / totalCards
+  const baseRotation = carouselState.rotation
+  const baseAngles = cardBaseAngles.value
+
   cards.forEach((card, index) => {
-    const centerIndex = 0 // Always start with the title card (index 0) as center
-    const offset = index - centerIndex
-    const absOffset = Math.abs(offset)
-    
-    // Calculate initial curved layout position with wider spacing
-    const angle = offset * 28 // Increased angle to prevent overlap
-    const radius = 900 // Increased radius for better spacing
-    const x = Math.sin(angle * Math.PI / 180) * radius
-    const z = Math.cos(angle * Math.PI / 180) * radius * 0.3
-    const rotateY = -angle * 1.0
-    
-    let scale, opacity, zIndex
-    
-    if (absOffset === 0) {
-      // Center card (title card)
-      scale = 1
-      opacity = 1
-      zIndex = 100
-    } else if (absOffset <= 1.5) {
-      // Adjacent cards
-      scale = 0.9
-      opacity = 0.9
-      zIndex = 85
-    } else if (absOffset <= 2.5) {
-      // Outer visible cards
-      scale = 0.8
-      opacity = 0.75
-      zIndex = 70
-    } else {
-      // Hidden cards (too far from center)
-      const hideDirection = offset > 0 ? 1 : -1
-      gsap.set(card, {
-        x: hideDirection * 1500, // Moderate distance for hiding
-        y: randomOffsets.value[index] || 0,
-        z: -60,
-        rotationY: hideDirection * 35,
-        rotationZ: randomTilts.value[index] || 0,
-        scale: 0.5,
-        opacity: 0,
-        zIndex: 1,
-        transformOrigin: "center center"
-      })
-      return // Skip the main gsap.set below
+    const angle = baseRotation + (baseAngles[index] ?? index * angleStep)
+    const sinAngle = Math.sin(angle)
+    const cosAngle = Math.cos(angle)
+    const wrappedAngle = Math.atan2(sinAngle, cosAngle)
+    const depthFactor = (cosAngle + 1) * 0.5 // 0 (back) -> 1 (front)
+
+    // Round pixel values to prevent subpixel rendering jitter
+    const x = Math.round(sinAngle * radius * 100) / 100  // Keep 2 decimal precision
+    const y = Math.round((Math.sin(wrappedAngle * 0.9) * verticalSpread + (randomOffsets.value[index] || 0) - centerYOffset) * 100) / 100
+    const z = Math.round(cosAngle * depth * 100) / 100
+    const scale = 0.48 + Math.pow(depthFactor, 1.4) * 0.48
+    const opacity = 0.25 + depthFactor * 0.75
+    const zIndex = Math.round(depthFactor * 80) + 20
+    const rotationY = Math.round((-wrappedAngle * RAD_TO_DEG) * 0.85 * 100) / 100
+
+    // Use will-change for optimized rendering
+    card.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateY(${rotationY}deg) rotateZ(0deg) scale(${scale})`
+    card.style.opacity = `${opacity}`
+    card.style.zIndex = `${zIndex}`
+  })
+
+  const normalizedProgress = (baseRotation / TWO_PI) % 1
+  carouselProgress.value = normalizedProgress
+
+  const activeIndex = ((-baseRotation / angleStep) % totalCards + totalCards) % totalCards
+  currentIndex.value = Math.round(activeIndex) % totalCards
+}
+
+function startAutoRotate() {
+  const cards = cardElements.value
+  if (!cards.length) return
+
+  if (stopAutoRotate) return
+
+  updateCardsPosition(cards)
+
+  const secondsPerCard = 2.4
+  const rotationSpeed = -TWO_PI / (cards.length * secondsPerCard)
+  let lastTickTime = performance.now()
+
+  const tickerCallback = () => {
+    const now = performance.now()
+    const deltaSeconds = Math.max(0.001, Math.min(0.033, (now - lastTickTime) / 1000))
+    lastTickTime = now
+
+    carouselState.rotation += rotationSpeed * deltaSeconds
+
+    if (carouselState.rotation >= TWO_PI || carouselState.rotation < 0) {
+      carouselState.rotation = ((carouselState.rotation % TWO_PI) + TWO_PI) % TWO_PI
     }
-    
-    gsap.set(card, { 
-      x: absOffset === 0 ? 0 : x * (absOffset <= 1.5 ? 1.2 : 1.3), // Increased multipliers to prevent overlap
-      y: randomOffsets.value[index] || 0,
-      z: absOffset === 0 ? 100 : z + (absOffset <= 1.5 ? 50 : 25),
-      rotationY: rotateY,
-      rotationZ: randomTilts.value[index] || 0,
-      scale: scale,
-      opacity: opacity,
-      zIndex: zIndex,
-      transformOrigin: "center center"
+
+    updateCardsPosition(cards)
+  }
+
+  gsap.ticker.add(tickerCallback)
+
+  stopAutoRotate = () => {
+    gsap.ticker.remove(tickerCallback)
+    stopAutoRotate = null
+  }
+}
+
+function initializeCarousel() {
+  const cards = gsap.utils.toArray('.cards li')
+  if (!cards.length) return
+
+  cardElements.value = cards
+  cards.forEach((card) => {
+    card.style.transformOrigin = 'center center'
+  })
+  const angleStep = cards.length ? TWO_PI / cards.length : 0
+  cardBaseAngles.value = cards.map((_, index) => index * angleStep)
+  generateRandomValues(cards.length)
+  carouselState.rotation = 0
+  updateCardsPosition(cardElements.value)
+}
+
+function observeCarouselVisibility() {
+  if (!galleryRef.value) return
+
+  if (intersectionObserver) {
+    intersectionObserver.disconnect()
+    intersectionObserver = null
+  }
+
+  if (typeof IntersectionObserver === 'undefined') {
+    if (!hasInitializedCarousel) {
+      initializeCarousel()
+      hasInitializedCarousel = true
+    }
+    startAutoRotate()
+    return
+  }
+
+  intersectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.target !== galleryRef.value) return
+
+      if (entry.isIntersecting) {
+        if (!hasInitializedCarousel) {
+          initializeCarousel()
+          hasInitializedCarousel = true
+        }
+        startAutoRotate()
+      } else if (stopAutoRotate) {
+        stopAutoRotate()
+      }
     })
+  }, {
+    threshold: 0.35
   })
 
-  // Create timeline for card animations with faster scroll speed
-  const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: '.article-research-section',
-      pin: true,
-      pinSpacing: true, // Ensure proper spacing
-      start: 'top top',
-      end: () => `+=${cards.length * 80}%`, // Adjusted for better spacing
-      scrub: 0.8, // Reduced from 1.2 for faster response
-      anticipatePin: 1, // Prevent layout shift
-      invalidateOnRefresh: true, // Recalculate on window resize
-      snap: {
-        snapTo: (value) => {
-          // Simplified snap function for consistent behavior
-          const snapPoints = []
-          for (let i = 0; i < cards.length; i++) {
-            snapPoints.push(i / (cards.length - 1))
-          }
-          
-          // Find closest snap point
-          let closest = snapPoints[0]
-          let minDiff = Math.abs(value - closest)
-          
-          for (let point of snapPoints) {
-            const diff = Math.abs(value - point)
-            if (diff < minDiff) {
-              closest = point
-              minDiff = diff
-            }
-          }
-          
-          return closest
-        },
-        duration: { min: 0.2, max: 0.6 },
-        delay: 0.05,
-        ease: 'power2.out'
-      },
-      onUpdate: (self) => {
-        const currentTime = Date.now()
-        
-        // Throttle updates to prevent jitter during fast scrolling
-        if (currentTime - lastScrollUpdate < scrollUpdateThrottle) {
-          return
-        }
-        lastScrollUpdate = currentTime
-        
-        const progress = self.progress
-        const exactIndex = progress * (cards.length - 1)
-        const cardIndex = Math.round(exactIndex)
-        const clampedIndex = Math.min(Math.max(cardIndex, 0), cards.length - 1)
-        
-        // Real-time card positioning based on current progress
-        updateCardsPosition(cards, exactIndex)
-        
-        // Update binary digits based on scroll progress
-        updateBinaryDigits(progress)
-        
-        if (clampedIndex !== currentIndex.value) {
-          currentIndex.value = clampedIndex
-        }
-      }
-    }
-  })
-
-  return tl
-}
-
-// Real-time card positioning function for consistent bidirectional scrolling
-function updateCardsPosition(cards, exactIndex) {
-  const visibleRange = 2.5 // Increased range to show 4 cards
-  
-  cards.forEach((card, index) => {
-    const offset = index - exactIndex
-    const absOffset = Math.abs(offset)
-    
-    if (absOffset <= visibleRange) {
-      // This card should be visible in the curved layout
-      const angle = offset * 20 // Increased angle to prevent overlap
-      const radius = 800 // Increased radius for better spacing
-      
-      // Calculate position using sine/cosine for smooth curve
-      const x = Math.sin(angle * Math.PI / 180) * radius
-      const z = Math.cos(angle * Math.PI / 180) * radius * 0.3
-      const rotateY = -angle * 1.0
-      
-      // Smooth interpolation for scale and opacity based on distance from center
-      const distanceFactor = 1 - (absOffset / visibleRange)
-      const baseScale = 0.6 + (distanceFactor * 0.4) // Scale from 0.6 to 1.0
-      const baseOpacity = 0.5 + (distanceFactor * 0.5) // Opacity from 0.5 to 1.0
-      
-      // Get dynamic animation values
-      const { dynamicTilt, dynamicOffset } = getDynamicValues(index, exactIndex)
-      
-      if (absOffset < 0.1) {
-        // Center card - fully forward and prominent
-        gsap.to(card, {
-          x: 0,
-          y: dynamicOffset,
-          z: 100,
-          rotationY: 0,
-          rotationZ: dynamicTilt,
-          scale: 1,
-          opacity: 1,
-          zIndex: 100,
-          duration: 0.6, // Increased duration for smoother transitions
-          ease: "power1.out", // Gentler easing
-          overwrite: "auto" // Prevent animation conflicts
-        })
-      } else if (absOffset <= 1.5) {
-        // Adjacent cards - interpolated positioning
-        const factor = 1.3 // Increased factor to prevent overlap
-        gsap.to(card, {
-          x: x * factor,
-          y: dynamicOffset,
-          z: z + 50,
-          rotationY: rotateY,
-          rotationZ: dynamicTilt,
-          scale: baseScale,
-          opacity: baseOpacity,
-          zIndex: Math.round(85 - absOffset * 10),
-          duration: 0.6, // Increased duration for smoother transitions
-          ease: "power1.out", // Gentler easing
-          overwrite: "auto" // Prevent animation conflicts
-        })
-      } else {
-        // Outer visible cards
-        gsap.to(card, {
-          x: x * 1.5, // Increased factor to prevent overlap
-          y: dynamicOffset,
-          z: z + 25,
-          rotationY: rotateY * 1.1, // Moderate rotation
-          rotationZ: dynamicTilt,
-          scale: baseScale,
-          opacity: baseOpacity,
-          zIndex: Math.round(70 - absOffset * 8),
-          duration: 0.6, // Increased duration for smoother transitions
-          ease: "power1.out", // Gentler easing
-          overwrite: "auto" // Prevent animation conflicts
-        })
-      }
-    } else {
-      // Hide cards that are too far from center
-      const hideDirection = offset > 0 ? 1 : -1
-      const { dynamicTilt, dynamicOffset } = getDynamicValues(index, exactIndex)
-      gsap.to(card, {
-        x: hideDirection * 1500, // Moderate distance for hiding
-        y: dynamicOffset,
-        z: -60,
-        rotationY: hideDirection * 35,
-        rotationZ: dynamicTilt,
-        scale: 0.5,
-        opacity: 0,
-        zIndex: 1,
-        duration: 0.6, // Increased duration for smoother transitions
-        ease: "power1.out", // Gentler easing
-        overwrite: "auto" // Prevent animation conflicts
-      })
-    }
-  })
-}
-
-function animateToCard(index, cards) {
-  // This function is now mainly for button controls
-  cards.forEach((card, i) => {
-    if (i === index) {
-      gsap.to(card, {
-        scale: 1,
-        opacity: 1,
-        zIndex: 100,
-        duration: 0.6,
-        ease: "power2.out"
-      })
-    } else {
-      gsap.to(card, {
-        scale: 0.8,
-        opacity: 0,
-        zIndex: 1,
-        duration: 0.6,
-        ease: "power2.out"
-      })
-    }
-  })
+  intersectionObserver.observe(galleryRef.value)
 }
 
 onMounted(() => {
@@ -545,48 +415,45 @@ onMounted(() => {
   
   // Start binary animation loop
   const animateBinary = () => {
-    updateBinaryDigits()
+    updateBinaryDigits(carouselProgress.value)
     binaryAnimationTimer.value = requestAnimationFrame(animateBinary)
   }
   animateBinary()
   
-  setTimeout(() => {
-    const cards = gsap.utils.toArray('.cards li')
-    if (cards.length > 0) {
-      console.log('Cards found:', cards.length) // Debug log
-      // Create the main timeline with ScrollTrigger
-      cardTimeline = createCardTimeline(cards)
-    }
-  }, 500)
+  nextTick(() => {
+    observeCarouselVisibility()
+  })
 })
 
 onUnmounted(() => {
-  // Kill the timeline and its ScrollTrigger
-  if (cardTimeline) {
-    cardTimeline.kill()
+  if (stopAutoRotate) {
+    stopAutoRotate()
   }
+  stopAutoRotate = null
+  if (intersectionObserver) {
+    intersectionObserver.disconnect()
+    intersectionObserver = null
+  }
+  hasInitializedCarousel = false
+  carouselProgress.value = 0
+  cardBaseAngles.value = []
   
   // Cancel binary animation
   if (binaryAnimationTimer.value) {
     cancelAnimationFrame(binaryAnimationTimer.value)
   }
-  
-  ScrollTrigger.getAll().forEach(st => st.kill())
 })
 </script>
 
 <style scoped>
 .article-research-section {
   width: 100%;
-  min-height: 100vh;
   height: 100vh;
   position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 2rem 0;
-  margin: 0;
-  box-sizing: border-box;
+  padding: 2rem 0; /* Add consistent vertical padding */
 }
 
 .binary-background {
@@ -658,8 +525,8 @@ onUnmounted(() => {
 
 .cards {
   position: absolute;
-  width: 14rem; /* Reduced from 20rem for smaller cards */
-  height: 20rem; /* Reduced from 28rem for smaller cards */
+  width: 12rem; /* Base card width */
+  height: 17rem; /* Base card height */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -671,10 +538,10 @@ onUnmounted(() => {
 
 .cards li {
   list-style: none;
-  padding: 18px; /* Reduced padding */
+  padding: 16px; /* Compact padding */
   margin: 0;
-  width: 14rem; /* Match container width */
-  height: 20rem; /* Match container height */
+  width: 12rem; /* Match container width */
+  height: 17rem; /* Match container height */
   position: absolute;
   top: 0;
   left: 0;
@@ -683,7 +550,7 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: flex-start;
   cursor: pointer;
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.25),
     0 3px 10px rgba(0, 0, 0, 0.15);
   transform-origin: center center;
@@ -691,7 +558,7 @@ onUnmounted(() => {
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   backface-visibility: visible;
-  will-change: transform;
+  will-change: transform, opacity; /* Optimize for transform and opacity changes */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -910,14 +777,14 @@ onUnmounted(() => {
   }
   
   .cards {
-    width: 12rem; /* Smaller on mobile */
-    height: 18rem; /* Smaller on mobile */
+    width: 11rem;
+    height: 16rem;
   }
   
   .cards li {
-    width: 12rem;
-    height: 18rem;
-    padding: 16px; /* Reduced padding */
+    width: 11rem;
+    height: 16rem;
+    padding: 14px;
   }
   
   .card-title {
@@ -957,14 +824,14 @@ onUnmounted(() => {
   }
   
   .cards {
-    width: 11rem; /* Even smaller */
-    height: 16rem; /* Even smaller */
+    width: 10rem;
+    height: 14.5rem;
   }
   
   .cards li {
-    width: 11rem;
-    height: 16rem;
-    padding: 14px; /* Further reduced padding */
+    width: 10rem;
+    height: 14.5rem;
+    padding: 12px;
   }
   
   .card-title {
