@@ -93,6 +93,12 @@ let intersectionObserver = null
 const carouselProgress = ref(0)
 const cardBaseAngles = ref([])
 
+// Interactive hover system
+const mousePos = ref({ x: 0, y: 0 })
+const hoveredCardIndex = ref(-1)
+const carouselTilt = ref({ x: 0, y: 0 })
+let hoverAnimations = []
+
 // Binary digits data
 const binaryDigits = ref([])
 const binaryAnimationTimer = ref(null)
@@ -409,19 +415,189 @@ function observeCarouselVisibility() {
   intersectionObserver.observe(galleryRef.value)
 }
 
+// Setup interactive hover system
+function setupInteractiveHover() {
+  const gallery = galleryRef.value
+  if (!gallery) return
+
+  // Track mouse position
+  gallery.addEventListener('mousemove', (e) => {
+    const rect = gallery.getBoundingClientRect()
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+
+    // Normalized mouse position (-1 to 1)
+    mousePos.value = {
+      x: (e.clientX - centerX) / (rect.width / 2),
+      y: (e.clientY - centerY) / (rect.height / 2)
+    }
+
+    // Apply carousel tilt based on mouse position
+    applyCarouselTilt()
+  })
+
+  // Reset on mouse leave
+  gallery.addEventListener('mouseleave', () => {
+    hoveredCardIndex.value = -1
+    resetCarouselTilt()
+  })
+
+  // Setup individual card hover
+  cardElements.value.forEach((card, index) => {
+    card.addEventListener('mouseenter', () => handleCardHover(card, index))
+    card.addEventListener('mouseleave', () => handleCardLeave(card, index))
+  })
+}
+
+// Apply carousel 3D tilt based on mouse position
+function applyCarouselTilt() {
+  const tiltStrength = 3 // degrees
+  const targetTilt = {
+    x: -mousePos.value.y * tiltStrength,
+    y: mousePos.value.x * tiltStrength
+  }
+
+  gsap.to(carouselTilt.value, {
+    x: targetTilt.x,
+    y: targetTilt.y,
+    duration: 0.6,
+    ease: 'power3.out'
+  })
+
+  // Apply tilt to cards container
+  if (cardsRef.value) {
+    gsap.to(cardsRef.value, {
+      rotationX: carouselTilt.value.x,
+      rotationY: carouselTilt.value.y,
+      duration: 0.6,
+      ease: 'power3.out'
+    })
+  }
+}
+
+// Reset carousel tilt
+function resetCarouselTilt() {
+  gsap.to(carouselTilt.value, {
+    x: 0,
+    y: 0,
+    duration: 0.8,
+    ease: 'elastic.out(1, 0.5)'
+  })
+
+  if (cardsRef.value) {
+    gsap.to(cardsRef.value, {
+      rotationX: 0,
+      rotationY: 0,
+      duration: 0.8,
+      ease: 'elastic.out(1, 0.5)'
+    })
+  }
+}
+
+// Handle card hover (magnetic effect)
+function handleCardHover(card, index) {
+  hoveredCardIndex.value = index
+
+  // Kill any existing hover animations for this card
+  if (hoverAnimations[index]) {
+    hoverAnimations[index].kill()
+  }
+
+  // Magnetic pull effect
+  const tl = gsap.timeline()
+
+  // Main card: slight lift and brightness
+  tl.to(card, {
+    scale: 1.08,
+    filter: 'brightness(1.2)',
+    duration: 0.5,
+    ease: 'power3.out',
+  }, 0)
+
+  // Ripple effect: animate surrounding cards
+  createRippleEffect(index)
+
+  hoverAnimations[index] = tl
+}
+
+// Handle card leave
+function handleCardLeave(card, index) {
+  if (hoveredCardIndex.value === index) {
+    hoveredCardIndex.value = -1
+  }
+
+  // Kill existing animation
+  if (hoverAnimations[index]) {
+    hoverAnimations[index].kill()
+  }
+
+  // Smooth return to normal
+  const tl = gsap.timeline()
+
+  tl.to(card, {
+    scale: 1,
+    filter: 'brightness(1)',
+    duration: 0.7,
+    ease: 'elastic.out(1, 0.5)',
+  })
+
+  hoverAnimations[index] = tl
+}
+
+// Create ripple effect on surrounding cards
+function createRippleEffect(centerIndex) {
+  const cards = cardElements.value
+  const totalCards = cards.length
+
+  cards.forEach((card, index) => {
+    if (index === centerIndex) return
+
+    // Calculate distance from hovered card
+    const distance = Math.min(
+      Math.abs(index - centerIndex),
+      totalCards - Math.abs(index - centerIndex)
+    )
+
+    // Ripple strength decreases with distance
+    const strength = Math.max(0, 1 - distance / 3)
+
+    if (strength > 0) {
+      gsap.to(card, {
+        scale: 1 + strength * 0.03,
+        duration: 0.4,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      })
+
+      // Return to normal after delay
+      gsap.to(card, {
+        scale: 1,
+        duration: 0.5,
+        ease: 'elastic.out(1, 0.5)',
+        delay: 0.1,
+        overwrite: 'auto'
+      })
+    }
+  })
+}
+
 onMounted(() => {
   // Initialize binary digits
   initBinaryDigits()
-  
+
   // Start binary animation loop
   const animateBinary = () => {
     updateBinaryDigits(carouselProgress.value)
     binaryAnimationTimer.value = requestAnimationFrame(animateBinary)
   }
   animateBinary()
-  
+
   nextTick(() => {
     observeCarouselVisibility()
+    // Setup interactive hover system after carousel is initialized
+    setTimeout(() => {
+      setupInteractiveHover()
+    }, 500)
   })
 })
 
@@ -555,19 +731,21 @@ onUnmounted(() => {
     0 3px 10px rgba(0, 0, 0, 0.15);
   transform-origin: center center;
   transform-style: preserve-3d;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(6px); /* Reduced blur for better performance */
   border: 1px solid rgba(255, 255, 255, 0.12);
   backface-visibility: visible;
-  will-change: transform, opacity; /* Optimize for transform and opacity changes */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity, filter; /* Add filter for brightness changes */
+  /* Only transition box-shadow and border naturally - scale/filter controlled by GSAP */
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cards li:hover {
-  transform: scale(1.02) translateZ(10px);
-  box-shadow: 
-    0 12px 48px rgba(0, 0, 0, 0.35),
-    0 6px 20px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  /* Enhanced hover state - controlled by JS for magnetic effect */
+  box-shadow:
+    0 16px 56px rgba(0, 0, 0, 0.4),
+    0 8px 28px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .title-card {

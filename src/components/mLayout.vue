@@ -27,7 +27,7 @@ const theme = computed(() => (isDarkMode.value ? darkTheme : lightTheme))
 const menuOptions = [
   { label: 'Home', key: 'landing' },
   { label: 'Project', key: 'project' },
-  { label: 'Competition', key: 'competition' },
+  // { label: 'Competition', key: 'competition' },
   { label: 'Activity', key: 'activity' },
   { label: 'About', key: 'about' }
 ]

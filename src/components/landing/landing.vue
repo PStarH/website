@@ -17,13 +17,13 @@ const router = useRouter()
 // Lenis smooth scroll setup
 const lenisRef = ref(null)
 const lenisOptions = {
-  lerp: 0.08, // Slightly slower for better control (from 0.1)
-  duration: 1.2,
+  lerp: 0.2, // Much faster response (was 0.15)
+  duration: 0.8, // Even shorter for snappier feel (was 0.9)
   smoothWheel: true,
   syncTouch: false, // Better performance on touch devices
   touchMultiplier: 2,
   infinite: false,
-  wheelMultiplier: 0.8, // Reduce wheel scroll speed for better control
+  wheelMultiplier: 1.2, // Faster wheel scrolling (was 1.0)
 }
 
 const roles = ref(['Full-stack Developer', 'AI Enthusiast', 'Data Analyst', 'NLP Developer', 'Creative Coder', 'Algorithm Designer', 'Automation Guru'])
@@ -83,6 +83,9 @@ const isFirstLoad = ref(true)
 const lastCodeforcesUpdate = ref(null) // Add Codeforces update tracking
 const isUsingCodeforceseFallbackData = ref(false) // Add Codeforces fallback flag
 let refreshInterval = null
+let cursorBlinkInterval = null
+let typingInterval = null
+let typingTimeout = null
 
 // Integrate Lenis with GSAP ScrollTrigger
 let scrollTimeout = null
@@ -108,8 +111,8 @@ watchEffect((onInvalidate) => {
   }
   gsap.ticker.add(update)
 
-  // Disable lag smoothing for immediate responsiveness
-  gsap.ticker.lagSmoothing(0)
+  // Enable lag smoothing to prevent jitter during performance drops
+  gsap.ticker.lagSmoothing(500, 33)
 
   // Track scroll direction and detect when scrolling has stopped or slowing down
   lenisRef.value.lenis.on('scroll', ({ scroll, velocity }) => {
@@ -128,13 +131,13 @@ watchEffect((onInvalidate) => {
     if (scrollTimeout) clearTimeout(scrollTimeout)
 
     // Detect when scrolling has slowed down significantly
-    if (Math.abs(velocity) < 0.05) {
+    if (Math.abs(velocity) < 0.1) { // Increased threshold for faster snap trigger (was 0.05)
       scrollTimeout = setTimeout(() => {
         // Double check before snapping
         if (!isSnapping) {
           snapToNearestSection()
         }
-      }, 100)
+      }, 50) // Reduced delay for faster response (was 100ms)
     }
   })
 
@@ -181,7 +184,7 @@ const snapToNearestSection = () => {
   // Special case: if we're at the very top (within 50px), always snap to absolute top
   if (scrollY < 50) {
     lenisRef.value.lenis.scrollTo(0, {
-      duration: 0.4,
+      duration: 0.3, // Very fast snap to top (was 0.4)
       easing: (t) => 1 - Math.pow(1 - t, 3),
       lock: true,
       onComplete: () => {
@@ -258,7 +261,7 @@ const snapToNearestSection = () => {
   if (distanceToTarget > minDistanceForSnap) {
     lenisRef.value.lenis.scrollTo(isHeroSection ? 0 : targetSection, {
       offset: isHeroSection ? 0 : 8, // No offset for hero, 8px offset for others
-      duration: 0.6, // Faster snap for more responsive feel (from 0.8s)
+      duration: 0.3, // Very fast snap for responsive feel (was 0.4s)
       easing: (t) => {
         // Custom easing for damping feel - quick deceleration
         return 1 - Math.pow(1 - t, 3)
@@ -277,7 +280,7 @@ const snapToNearestSection = () => {
 
 onMounted(() => {
   typeNextRole()
-  setInterval(() => {
+  cursorBlinkInterval = setInterval(() => {
     showCursor.value = !showCursor.value
   }, 500)
 
@@ -313,9 +316,41 @@ onMounted(() => {
 
 // Clean up intervals when component is unmounted
 onUnmounted(() => {
+  // Clear all intervals
   if (refreshInterval) {
     clearInterval(refreshInterval)
   }
+  if (cursorBlinkInterval) {
+    clearInterval(cursorBlinkInterval)
+  }
+  if (typingInterval) {
+    clearInterval(typingInterval)
+  }
+  if (typingTimeout) {
+    clearTimeout(typingTimeout)
+  }
+
+  // Kill all GSAP animations and ScrollTriggers
+  gsap.killTweensOf('*')
+  ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+
+  // Clear any pending timeouts
+  if (scrollTimeout) {
+    clearTimeout(scrollTimeout)
+  }
+
+  // Destroy Lenis instance if it exists
+  if (lenisRef.value?.lenis) {
+    lenisRef.value.lenis.destroy()
+  }
+
+  // Clean up all particle elements
+  const particleElements = document.querySelectorAll('.collision-particle, .impact-particle, .snowflake-particle, .star-particle, .snowflake-container')
+  particleElements.forEach(element => {
+    if (element.parentNode) {
+      element.parentNode.removeChild(element)
+    }
+  })
 })
 
 // Disabled: Using CSS scroll-snap instead
@@ -1046,13 +1081,19 @@ function typeNextRole() {
   const role = roles.value[currentRoleIndex.value]
   let charIndex = 0
 
-  const typingInterval = setInterval(() => {
+  // Clear any existing interval
+  if (typingInterval) {
+    clearInterval(typingInterval)
+  }
+
+  typingInterval = setInterval(() => {
     if (charIndex < role.length) {
       typedText.value += role[charIndex]
       charIndex++
     } else {
       clearInterval(typingInterval)
-      setTimeout(() => {
+      typingInterval = null
+      typingTimeout = setTimeout(() => {
         eraseRole()
       }, 2000)
     }
@@ -1060,13 +1101,19 @@ function typeNextRole() {
 }
 
 function eraseRole() {
-  const eraseInterval = setInterval(() => {
+  // Clear any existing interval
+  if (typingInterval) {
+    clearInterval(typingInterval)
+  }
+
+  typingInterval = setInterval(() => {
     if (typedText.value.length > 0) {
       typedText.value = typedText.value.slice(0, -1)
     } else {
-      clearInterval(eraseInterval)
+      clearInterval(typingInterval)
+      typingInterval = null
       currentRoleIndex.value = (currentRoleIndex.value + 1) % roles.value.length
-      setTimeout(() => {
+      typingTimeout = setTimeout(() => {
         typeNextRole()
       }, 500)
     }
@@ -1774,10 +1821,11 @@ const createStarEffect = (event, techName) => {
 </script>
 
 <template>
-  <VueLenis ref="lenisRef" :options="lenisOptions" root>
-    <div class="homepage">
-      <!-- First section: Introduction and skills -->
-      <section class="hero-section">
+  <div class="landing-container">
+    <VueLenis ref="lenisRef" :options="lenisOptions" root>
+      <div class="homepage">
+        <!-- First section: Introduction and skills -->
+        <section class="hero-section">
       <div class="hero-content">
         <n-grid :cols="24" :x-gap="24" style="align-items: center;">
           <n-gi :span="8">
@@ -2063,11 +2111,19 @@ const createStarEffect = (event, techName) => {
       <ArticleResearch />
     <TechStack />
     </div>
-  </div>
+    </div>
   </VueLenis>
+  </div>
 </template>
 
 <style scoped>
+/* Wrapper container for transition compatibility */
+.landing-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 .homepage {
   width: 100%;
   margin: 0;

@@ -49,11 +49,11 @@ const routes = [
                 name: "about",
                 component: () => store.state.display.isMobile ? import('../components/about/mAbout.vue') : import('../components/about/about.vue')
             },
-            {
-                path: "competition",
-                name: "competition",
-                component: () => store.state.display.isMobile ? import('../components/competition/mCompetition.vue') : import('../components/competition/competition.vue')
-            },
+            // {
+            //     path: "competition",
+            //     name: "competition",
+            //     component: () => store.state.display.isMobile ? import('../components/competition/mCompetition.vue') : import('../components/competition/competition.vue')
+            // },
             {
                 path: "activity",
                 name: "activity",

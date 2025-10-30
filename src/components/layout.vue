@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, provide } from 'vue'
+import { ref, computed, provide, watch } from 'vue'
 import {
   NDivider,
   NFlex,
@@ -56,12 +56,18 @@ const hoveredItem = ref(null)
 const menuOptions = [
   { label: 'Home', key: 'landing' },
   { label: 'Project', key: 'project' },
-  { label: 'Competition', key: 'competition' },
+  // { label: 'Competition', key: 'competition' },
   { label: 'Activity', key: 'activity' },
   { label: 'About', key: 'about' }
 ]
 
-const activeKey = computed(() => router.currentRoute.value.name)
+// Change activeKey to a ref instead of computed
+const activeKey = ref(router.currentRoute.value.name)
+
+// Watch for route changes and update activeKey
+watch(() => router.currentRoute.value.name, (newName) => {
+  activeKey.value = newName
+})
 
 function handleRouteChange(key) {
   router.push({ name: key })
