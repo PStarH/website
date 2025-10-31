@@ -1,14 +1,16 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed, inject, nextTick, watchEffect } from 'vue'
+import { ref, onMounted, onUnmounted, computed, inject, nextTick, watchEffect, defineAsyncComponent } from 'vue'
 import { ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import { VueLenis, useLenis } from 'lenis/vue'
-import TechStack from './TechStack.vue'
-import ArticleResearch from './ArticleResearch.vue'
-import Awards from './Awards.vue'
+
+// Lazy load non-critical components for better performance
+const TechStack = defineAsyncComponent(() => import('./TechStack.vue'))
+const ArticleResearch = defineAsyncComponent(() => import('./ArticleResearch.vue'))
+const Awards = defineAsyncComponent(() => import('./Awards.vue'))
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin)
 
@@ -86,6 +88,12 @@ let refreshInterval = null
 let cursorBlinkInterval = null
 let typingInterval = null
 let typingTimeout = null
+
+// Performance optimization flags
+const prefersReducedMotion = ref(false)
+const statsVisible = ref(false)
+const statsObserver = ref(null)
+const devicePerformance = ref('high') // high, medium, low
 
 // Integrate Lenis with GSAP ScrollTrigger
 let scrollTimeout = null
@@ -279,6 +287,27 @@ const snapToNearestSection = () => {
 }
 
 onMounted(() => {
+  // Detect user's motion preference
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+  prefersReducedMotion.value = motionQuery.matches
+
+  // Listen for changes in motion preference
+  motionQuery.addEventListener('change', (e) => {
+    prefersReducedMotion.value = e.matches
+  })
+
+  // Detect device performance
+  const cores = navigator.hardwareConcurrency || 4
+  const memory = navigator.deviceMemory || 4
+
+  if (cores <= 2 || memory <= 2) {
+    devicePerformance.value = 'low'
+  } else if (cores <= 4 || memory <= 4) {
+    devicePerformance.value = 'medium'
+  } else {
+    devicePerformance.value = 'high'
+  }
+
   typeNextRole()
   cursorBlinkInterval = setInterval(() => {
     showCursor.value = !showCursor.value
@@ -287,15 +316,19 @@ onMounted(() => {
   // Wait for DOM rendering to complete before executing animations
   nextTick(() => {
     animateSkills()
-    // setupSmoothScroll() - Disabled to allow scroll-snap to work
     setupPyramidAnimation()
-    setupVortexAnimation() // Now creates snowflake effect
-    setupAvatarTiltEffect() // Add avatar tilt effect
+
+    // Only setup animations if user prefers motion
+    if (!prefersReducedMotion.value) {
+      setupVortexAnimation() // Now creates snowflake effect
+      setupAvatarTiltEffect() // Add avatar tilt effect
+    }
+
     // Clear any stale cache older than 24 hours on startup
     clearStaleCache()
-    // Force fresh data on first load to ensure users see current data
-    fetchGitHubStats(true)
-    fetchCodeforcesStats(true)
+
+    // Setup Intersection Observer for lazy API calls
+    setupStatsObserver()
   })
 
   // Update time display text every minute
@@ -307,10 +340,12 @@ onMounted(() => {
     }
   }, 60000) // Update time display every 60 seconds
 
-  // Set up 15-minute refresh interval for GitHub data
+  // Set up 15-minute refresh interval for GitHub data (only if stats are visible)
   refreshInterval = setInterval(() => {
-    fetchGitHubStats()
-    fetchCodeforcesStats()
+    if (statsVisible.value) {
+      fetchGitHubStats()
+      fetchCodeforcesStats()
+    }
   }, 15 * 60 * 1000) // 15 minutes
 })
 
@@ -328,6 +363,12 @@ onUnmounted(() => {
   }
   if (typingTimeout) {
     clearTimeout(typingTimeout)
+  }
+
+  // Disconnect Intersection Observer
+  if (statsObserver.value) {
+    statsObserver.value.disconnect()
+    statsObserver.value = null
   }
 
   // Kill all GSAP animations and ScrollTriggers
@@ -412,12 +453,12 @@ function clearStaleCache() {
   // Clear GitHub cache
   const githubCacheKey = `github-stats-${githubUsername}`
   const githubCached = localStorage.getItem(githubCacheKey)
-  
+
   if (githubCached) {
     try {
       const { timestamp } = JSON.parse(githubCached)
       const hoursSinceCache = (Date.now() - timestamp) / (1000 * 60 * 60)
-      
+
       // Clear cache if it's older than 24 hours
       if (hoursSinceCache > 24) {
         localStorage.removeItem(githubCacheKey)
@@ -433,12 +474,12 @@ function clearStaleCache() {
   // Clear Codeforces cache
   const codeforcesCacheKey = `codeforces-stats-${codeforcesUsername}`
   const codeforcesCached = localStorage.getItem(codeforcesCacheKey)
-  
+
   if (codeforcesCached) {
     try {
       const { timestamp } = JSON.parse(codeforcesCached)
       const hoursSinceCache = (Date.now() - timestamp) / (1000 * 60 * 60)
-      
+
       // Clear cache if it's older than 24 hours
       if (hoursSinceCache > 24) {
         localStorage.removeItem(codeforcesCacheKey)
@@ -450,6 +491,37 @@ function clearStaleCache() {
       console.log('Cleared invalid Codeforces cache data')
     }
   }
+}
+
+// Setup Intersection Observer for lazy loading API data
+function setupStatsObserver() {
+  const statsSection = document.getElementById('statisticsSection')
+  if (!statsSection) return
+
+  // Create Intersection Observer to detect when stats section is near viewport
+  statsObserver.value = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && !statsVisible.value) {
+          statsVisible.value = true
+          // Load stats data when section is about to be visible
+          fetchGitHubStats(true)
+          fetchCodeforcesStats(true)
+          // Disconnect observer after first trigger
+          if (statsObserver.value) {
+            statsObserver.value.disconnect()
+          }
+        }
+      })
+    },
+    {
+      // Trigger when section is 300px away from viewport
+      rootMargin: '300px',
+      threshold: 0
+    }
+  )
+
+  statsObserver.value.observe(statsSection)
 }
 
 // Get GitHub statistics data
@@ -1529,6 +1601,9 @@ function createSnowflakeParticles() {
   const heroSection = document.querySelector('.hero-section')
   if (!heroSection) return
 
+  // Don't create snowflakes if user prefers reduced motion
+  if (prefersReducedMotion.value) return
+
   // Create container for snowflake particles
   const snowflakeContainer = document.createElement('div')
   snowflakeContainer.className = 'snowflake-container'
@@ -1552,19 +1627,27 @@ function createSnowflakeParticles() {
   // Define different snowflake shapes using Unicode snowflake characters
   const snowflakeShapes = ['❅', '❆', '❄', '⋄', '◊']
 
-  // Create fewer snowflakes for better performance
+  // Adaptive particle count based on device performance
+  let snowflakeCount = 6 // Default for high performance
+  if (devicePerformance.value === 'medium') {
+    snowflakeCount = 4
+  } else if (devicePerformance.value === 'low') {
+    snowflakeCount = 2
+  }
+
+  // Create optimized number of snowflakes
   const fragment = document.createDocumentFragment()
-  for (let i = 0; i < 12; i++) { // Optimized: Reduced from 25 to 12 snowflakes (50% reduction)
+  for (let i = 0; i < snowflakeCount; i++) {
     const snowflake = document.createElement('div')
     const color = snowflakeColors[i % snowflakeColors.length]
     const shape = snowflakeShapes[i % snowflakeShapes.length]
-    
+
     snowflake.className = 'snowflake-particle'
-    
+
     const size = 10 + Math.random() * 6 // Reduced to 10-16px snowflakes
     const initialX = Math.random() * heroSection.offsetWidth
     const initialY = -20 - Math.random() * 100
-    
+
     snowflake.style.cssText = `
       position: absolute;
       width: ${size}px;
@@ -1580,17 +1663,17 @@ function createSnowflakeParticles() {
       filter: drop-shadow(0 0 1px rgba(0, 140, 255, 0.15));
     `
     snowflake.textContent = shape
-    
+
     gsap.set(snowflake, {
       x: initialX,
       y: initialY,
       rotation: Math.random() * 360,
       force3D: true
     })
-    
+
     fragment.appendChild(snowflake)
   }
-  
+
   // Batch append all snowflakes
   snowflakeContainer.appendChild(fragment)
 }
@@ -1831,7 +1914,15 @@ const createStarEffect = (event, techName) => {
           <n-gi :span="8">
             <n-flex :justify="'start'">
               <div class="avatar-container" ref="avatarContainer">
-                <n-avatar :size="289" :src="`/website/images/landingAvatar.jpg`" round class="avatar" />
+                <n-avatar
+                  :size="289"
+                  :src="`/website/images/landingAvatar.jpg`"
+                  round
+                  class="avatar"
+                  loading="lazy"
+                  decoding="async"
+                  :img-props="{ loading: 'lazy', decoding: 'async' }"
+                />
                 
                 <!-- Satellite orbit system -->
                 <div class="satellite-system">
@@ -2106,10 +2197,39 @@ const createStarEffect = (event, techName) => {
 
     <!-- Subsequent content areas -->
     <div class="content-sections">
+      <!-- Use Suspense for lazy-loaded components -->
+      <Suspense>
+        <template #default>
+          <Awards />
+        </template>
+        <template #fallback>
+          <div class="section-loading">
+            <n-spin size="medium" />
+          </div>
+        </template>
+      </Suspense>
 
-      <Awards />
-      <ArticleResearch />
-    <TechStack />
+      <Suspense>
+        <template #default>
+          <ArticleResearch />
+        </template>
+        <template #fallback>
+          <div class="section-loading">
+            <n-spin size="medium" />
+          </div>
+        </template>
+      </Suspense>
+
+      <Suspense>
+        <template #default>
+          <TechStack />
+        </template>
+        <template #fallback>
+          <div class="section-loading">
+            <n-spin size="medium" />
+          </div>
+        </template>
+      </Suspense>
     </div>
     </div>
   </VueLenis>
@@ -3537,6 +3657,15 @@ const createStarEffect = (event, techName) => {
   font-family: Arial, sans-serif;
 }
 
+/* Loading state for lazy-loaded sections */
+.section-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+}
+
 /* Dark mode adjustments for snowflakes */
 .n-config-provider[data-theme="dark"] .snowflake-particle {
   opacity: 0.3 !important; /* Increased visibility in dark mode */
@@ -3554,9 +3683,39 @@ const createStarEffect = (event, techName) => {
   .snowflake-container {
     opacity: 0.6; /* Reduce opacity on tablets */
   }
-  
+
   .snowflake-particle {
     font-size: 6px !important; /* Smaller snowflakes on tablets */
+  }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .snowflake-particle,
+  .collision-particle,
+  .impact-particle,
+  .star-particle {
+    display: none !important;
+  }
+
+  .skill-tag,
+  .pyramid-stat,
+  .grid-stat-item,
+  .side-stat,
+  .satellite,
+  .avatar {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .satellite-orbit {
+    animation: none !important;
+  }
+
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
