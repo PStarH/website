@@ -217,6 +217,7 @@ const awards = ref([
 
 <style scoped>
 .awards-section {
+  padding-top: 32px;
   padding: 0;
   position: relative;
   height: 100vh;
