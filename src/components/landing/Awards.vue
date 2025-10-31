@@ -11,15 +11,15 @@
       <div class="sphere sphere-7"></div>
       <div class="sphere sphere-8"></div>
     </div>
-    
+
     <div class="awards-container">
       <!-- First row - 3 awards -->
       <div class="awards-row">
-        <div 
-          v-for="(award, index) in awards.slice(0, 3)" 
+        <div
+          v-for="(award, index) in awards.slice(0, 3)"
           :key="index"
+          :ref="el => setCardRef(el, index)"
           class="award-card"
-          :style="{ animationDelay: index * 0.2 + 's' }"
         >
           <div class="award-header">
             <div class="award-title-row">
@@ -45,11 +45,11 @@
 
       <!-- Second row - 3 awards -->
       <div class="awards-row">
-        <div 
-          v-for="(award, index) in awards.slice(3, 6)" 
+        <div
+          v-for="(award, index) in awards.slice(3, 6)"
           :key="index + 3"
+          :ref="el => setCardRef(el, index + 3)"
           class="award-card"
-          :style="{ animationDelay: (index + 3) * 0.2 + 's' }"
         >
           <div class="award-header">
             <div class="award-title-row">
@@ -76,7 +76,10 @@
       <!-- Third row - 1 award + Awards title + 1 award -->
       <div class="awards-row-with-title">
         <!-- Left award -->
-        <div class="award-card" :style="{ animationDelay: '1.2s' }">
+        <div
+          :ref="el => setCardRef(el, 6)"
+          class="award-card"
+        >
           <div class="award-header">
             <div class="award-title-row">
               <div class="subject-icon" :style="{ color: awards[6]?.color }">
@@ -104,7 +107,10 @@
         </div>
 
         <!-- Right award -->
-        <div class="award-card" :style="{ animationDelay: '1.4s' }">
+        <div
+          :ref="el => setCardRef(el, 7)"
+          class="award-card"
+        >
           <div class="award-header">
             <div class="award-title-row">
               <div class="subject-icon" :style="{ color: awards[7]?.color }">
@@ -133,6 +139,14 @@
 <script setup>
 import { ref } from 'vue'
 
+const cardRefs = ref([])
+
+const setCardRef = (el, index) => {
+  if (el) {
+    cardRefs.value[index] = el
+  }
+}
+
 const awards = ref([
   {
     title: 'BPhO',
@@ -140,15 +154,15 @@ const awards = ref([
     subject: 'Physics',
     icon: '⚛️',
     color: '#4CAF50',
-    description: 'British Physics Olympiad - National physics competition testing advanced problem-solving skills in theoretical and experimental physics.'
+    description: 'Intermediate Physics Challenge - Silver Award. A prestigious British physics competition testing theoretical and experimental problem-solving skills for high school students.'
   },
   {
-    title: 'AMC',
-    year: '2022-2023',
+    title: 'AMC 12B',
+    year: '2023',
     subject: 'Mathematics',
     icon: '∑',
     color: '#2196F3',
-    description: 'American Mathematics Competitions - Prestigious mathematics competition series including AMC 8, AMC 10, and AMC 12.'
+    description: 'Scored 144 points, Honor Roll of Distinction. Part of the American Mathematics Competitions series, one of the most challenging mathematics contests for high school students worldwide.'
   },
   {
     title: 'AIME',
@@ -156,23 +170,23 @@ const awards = ref([
     subject: 'Mathematics',
     icon: '∑',
     color: '#2196F3',
-    description: 'American Invitational Mathematics Examination - Advanced mathematics competition for high-achieving AMC participants.'
+    description: 'Scored 11 points. American Invitational Mathematics Examination for top AMC performers, featuring complex problem-solving questions that test advanced mathematical reasoning.'
   },
   {
-    title: 'BMO',
-    year: '2023',
+    title: 'BMO1',
+    year: '2024',
     subject: 'Mathematics',
     icon: '∑',
     color: '#2196F3',
-    description: 'British Mathematical Olympiad - National mathematics olympiad featuring challenging proof-based problems.'
+    description: 'Distinction Award. British Mathematical Olympiad Round 1 - a national competition featuring challenging proof-based mathematics problems for exceptional students.'
   },
   {
     title: 'BMO2',
-    year: '2023',
+    year: '2024',
     subject: 'Mathematics',
     icon: '∑',
     color: '#2196F3',
-    description: 'British Mathematical Olympiad Round 2 - Advanced round for top BMO performers, selection for International Mathematical Olympiad.'
+    description: 'Merit Award. British Mathematical Olympiad Round 2 - the elite second round for top BMO1 performers, serving as selection for the International Mathematical Olympiad.'
   },
   {
     title: 'Codeforces',
@@ -180,7 +194,7 @@ const awards = ref([
     subject: 'Computer Science',
     icon: '💻',
     color: '#FF9800',
-    description: 'Competitive programming platform with regular contests testing algorithmic problem-solving and programming skills.'
+    description: 'Master Rank. A leading competitive programming platform with regular contests testing algorithmic thinking, data structures, and programming efficiency under time pressure.'
   },
   {
     title: 'Kaggle',
@@ -188,15 +202,15 @@ const awards = ref([
     subject: 'Data Science',
     icon: '📊',
     color: '#9C27B0',
-    description: 'Global platform for data science competitions, featuring machine learning challenges and collaborative projects.'
+    description: 'Top 10 finishes in two open competitions. The world\'s largest data science community featuring machine learning competitions with real-world datasets and challenges.'
   },
   {
     title: 'John Locke',
     year: '2023',
-    subject: 'History',
+    subject: 'Philosophy',
     icon: '🤔',
     color: '#795548',
-    description: 'John Locke Institute Essay Competition - Academic writing competition covering philosophy, politics, economics, and related subjects.'
+    description: 'Commendation Award. John Locke Institute Essay Competition - a prestigious academic writing competition covering philosophy, politics, economics, and related humanities subjects.'
   }
 ])
 </script>
@@ -368,24 +382,15 @@ const awards = ref([
   flex-direction: column;
   gap: 1rem;
   min-height: 180px;
-  animation: cardFloat 4s ease-in-out infinite;
   transform-origin: center;
-}
-
-@keyframes cardFloat {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
+  position: relative;
+  cursor: pointer;
 }
 
 .award-card:hover {
-  transform: translateY(-12px) scale(1.02);
+  transform: translateY(-8px) scale(1.02);
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
   border-color: rgba(255, 255, 255, 0.4);
-  animation-play-state: paused;
 }
 
 .award-header {
@@ -507,15 +512,6 @@ const awards = ref([
 
   .sphere {
     transform: scale(0.7);
-  }
-
-  @keyframes cardFloat {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-5px);
-    }
   }
 }
 

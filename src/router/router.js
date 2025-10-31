@@ -69,7 +69,10 @@ const router = createRouter({
 });
 
 router.afterEach(() => {
-    window.scrollTo(0, 0)
+    // Use setTimeout to ensure the new component is mounted before scrolling
+    setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    }, 0)
 })
 
 export default router;
