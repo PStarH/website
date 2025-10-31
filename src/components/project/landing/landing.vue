@@ -2,17 +2,18 @@
     <div class="container" style="padding-left: 72px; padding-right: 72px;">
         <!-- Algorithm Series Section -->
         <div class="header-section" ref="headerSection">
-            <div class="header-title" ref="headerTitle">Algorithm Visualizations</div>
+            <div class="header-title" ref="headerTitle">My projects</div>
             <div class="header-description" ref="headerDescription">
-                Interactive explorations of classic algorithms and data structures.
-                <br />Each project provides step-by-step visualizations to enhance understanding.
+                Every creation begins with a blueprint of thought. This page houses the architecture of my passion—a
+                collection of digital edifices built from the ground up. The timeline is my foundation, a record of
+                growth and iteration. Alongside, my interactive algorithms are the open doors, welcoming you to explore
+                the spaces where function and form converge.
             </div>
         </div>
-        <div class="subHead" ref="algorithmTitle">Explained Algorithm Series</div>
+        <div class="subHead" ref="algorithmTitle">Interactive Algorithm Series</div>
         <n-grid :cols="4" :x-gap="12" :y-gap="8" class="projects-grid" ref="projectsGrid">
             <n-gi>
-                <div class="projectsCard card-wrapper"
-                     @click="router.push({ name: 'projects-fireEscape' })">
+                <div class="projectsCard card-wrapper" @click="router.push({ name: 'projects-fireEscape' })">
                     <div class="project-title"><b>Escape the Spreading Fire</b></div>
                     <div>
                         <n-text :depth="3">
@@ -29,8 +30,7 @@
                 </div>
             </n-gi>
             <n-gi>
-                <div class="projectsCard card-wrapper"
-                     @click="router.push({ name: 'projects-reversi' })">
+                <div class="projectsCard card-wrapper" @click="router.push({ name: 'projects-reversi' })">
                     <div class="project-title"><b>Reversi</b></div>
                     <div>
                         <n-text :depth="3">
@@ -47,13 +47,13 @@
                 </div>
             </n-gi>
             <n-gi>
-                <div class="projectsCard card-wrapper"
-                     @click="router.push({ name: 'projects-dfs' })">
+                <div class="projectsCard card-wrapper" @click="router.push({ name: 'projects-dfs' })">
                     <div class="project-title"><b>DFS Maze Solver</b></div>
                     <div>
                         <n-text :depth="3">
                             Learn how Depth-First Search (DFS) algorithm can solve complex maze problems. This blog
-                            explains the recursive nature of DFS, demonstrates its implementation with <b>backtracking</b>,
+                            explains the recursive nature of DFS, demonstrates its implementation with
+                            <b>backtracking</b>,
                             and provides an interactive maze visualization where you can watch the algorithm explore
                             paths to find the exit.
                         </n-text>
@@ -65,8 +65,7 @@
                 </div>
             </n-gi>
             <n-gi>
-                <div class="projectsCard card-wrapper"
-                     @click="router.push({ name: 'projects-dp' })">
+                <div class="projectsCard card-wrapper" @click="router.push({ name: 'projects-dp' })">
                     <div class="project-title"><b>Knapsack Problem</b></div>
                     <div>
                         <n-text :depth="3">
@@ -98,25 +97,23 @@
                 <div class="stick-figure" ref="stickFigure">
                     <svg width="40" height="60" viewBox="0 0 40 60" xmlns="http://www.w3.org/2000/svg">
                         <!-- 头部 -->
-                        <circle cx="20" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="20" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2" />
                         <!-- 身体 -->
-                        <line x1="20" y1="18" x2="20" y2="35" stroke="currentColor" stroke-width="2"/>
+                        <line x1="20" y1="18" x2="20" y2="35" stroke="currentColor" stroke-width="2" />
                         <!-- 手臂 -->
-                        <line class="arm-left" x1="20" y1="25" x2="10" y2="30" stroke="currentColor" stroke-width="2"/>
-                        <line class="arm-right" x1="20" y1="25" x2="30" y2="30" stroke="currentColor" stroke-width="2"/>
+                        <line class="arm-left" x1="20" y1="25" x2="10" y2="30" stroke="currentColor" stroke-width="2" />
+                        <line class="arm-right" x1="20" y1="25" x2="30" y2="30" stroke="currentColor"
+                            stroke-width="2" />
                         <!-- 腿 -->
-                        <line class="leg-left" x1="20" y1="35" x2="12" y2="50" stroke="currentColor" stroke-width="2"/>
-                        <line class="leg-right" x1="20" y1="35" x2="28" y2="50" stroke="currentColor" stroke-width="2"/>
+                        <line class="leg-left" x1="20" y1="35" x2="12" y2="50" stroke="currentColor" stroke-width="2" />
+                        <line class="leg-right" x1="20" y1="35" x2="28" y2="50" stroke="currentColor"
+                            stroke-width="2" />
                     </svg>
                 </div>
 
                 <!-- 时间轴项目 -->
-                <div
-                    v-for="(project, index) in timeline"
-                    :key="index"
-                    class="timeline-item"
-                    :class="{ 'timeline-left': index % 2 === 0, 'timeline-right': index % 2 === 1 }"
-                >
+                <div v-for="(project, index) in timeline" :key="index" class="timeline-item"
+                    :class="{ 'timeline-left': index % 2 === 0, 'timeline-right': index % 2 === 1 }">
                     <!-- 时间节点圆点 -->
                     <div class="timeline-dot" :style="{ backgroundColor: project.color }">
                         <div class="timeline-dot-icon">{{ project.icon }}</div>
@@ -136,44 +133,29 @@
 
                         <!-- 链接区域 -->
                         <div v-if="isMultipleRepos(project.repo)" class="repo-grid">
-                            <a
-                                v-for="(link, linkIndex) in getRepoLinks(project.repo)"
-                                :key="linkIndex"
-                                :href="link.url.includes('Private') ? '#' : link.url"
-                                target="_blank"
-                                class="repo-mini-card"
-                                :class="{ 'repo-private': link.url.includes('Private') }"
-                                :style="{ borderColor: project.color }"
-                            >
+                            <a v-for="(link, linkIndex) in getRepoLinks(project.repo)" :key="linkIndex"
+                                :href="link.url.includes('Private') ? '#' : link.url" target="_blank"
+                                class="repo-mini-card" :class="{ 'repo-private': link.url.includes('Private') }"
+                                :style="{ borderColor: project.color }">
                                 <span class="repo-icon">
                                     {{ link.url.includes('Private') ? '🔒' : '📦' }}
                                 </span>
                                 <span class="repo-name">{{ extractProjectName(link.url) }}</span>
                             </a>
                         </div>
-                        <a
-                            v-else
-                            :href="project.repo"
-                            target="_blank"
-                            class="repo-link"
-                            :style="{ backgroundColor: project.color + '20', borderColor: project.color }"
-                        >
+                        <a v-else :href="project.repo" target="_blank" class="repo-link"
+                            :style="{ backgroundColor: project.color + '20', borderColor: project.color }">
                             <span>View on GitHub</span>
                             <span class="repo-arrow">→</span>
                         </a>
 
                         <!-- 标签 -->
                         <div class="card-tags">
-                            <span
-                                v-for="tag in project.tags"
-                                :key="tag"
-                                class="card-tag"
-                                :style="{
-                                    backgroundColor: project.color + '20',
-                                    borderColor: project.color,
-                                    color: project.color
-                                }"
-                            >
+                            <span v-for="tag in project.tags" :key="tag" class="card-tag" :style="{
+                                backgroundColor: project.color + '20',
+                                borderColor: project.color,
+                                color: project.color
+                            }">
                                 {{ tag }}
                             </span>
                         </div>
@@ -204,136 +186,136 @@ const projectsGrid = ref(null);
 
 // 成长时间轴数据
 const timeline = ref([
-  {
-    date: "2024-10-17",
-    title: "MSTSearch",
-    repo: "https://github.com/PStarH/MSTSearch",
-    summary: "First project that achieved 50 stars and included both backend and frontend.",
-    description: "A search aggregation platform that crawls multiple search engines, ranks results using custom metrics, and leverages AI to generate summaries and answers. Built with a Python backend and Vue.js frontend.",
-    tags: ["AI", "Fullstack", "Search", "Python", "Vue"],
-    icon: "🔍",
-    color: "#667eea"
-  },
-  {
-    date: "2024-11-07",
-    title: "Personalized-LLM",
-    repo: "https://github.com/PStarH/Personalized-LLM",
-    summary: "First project working directly with LLMs.",
-    description: "A framework enhancing LLM accuracy and personalization using RAG, local data embedding, web crawling, and contextual analysis.",
-    tags: ["LLM", "RAG", "AI", "Personalization", "Chain-of-Thoughts"],
-    icon: "🤖",
-    color: "#764ba2"
-  },
-  {
-    date: "2024-11-18",
-    title: "PackLight & CalmWake",
-    repo: ["https://github.com/PStarH/PackLight", "https://github.com/PStarH/CalmWake"],
-    summary: "First self-built frontend projects.",
-    description: "PackLight is a packing list app built with React and TypeScript. CalmWake Clock provides a smooth, minimalistic clock interface with customizable options.",
-    tags: ["Frontend", "React", "TypeScript", "UI Design"],
-    icon: "💼",
-    color: "#f093fb"
-  },
-  {
-    date: "2024-11-27",
-    title: "My GBIF Biodiversity Project",
-    repo: "https://github.com/PStarH/my-gbif-project",
-    summary: "First project using a public API.",
-    description: "A web app using the GBIF API to explore biodiversity data, display random species, and allow database-wide searches.",
-    tags: ["API", "Frontend", "Biodiversity", "Data Visualization"],
-    icon: "🦋",
-    color: "#4ecdc4"
-  },
-  {
-    date: "2024-12-01",
-    title: "MoodNotes",
-    repo: "https://github.com/PStarH/MoodNotes",
-    summary: "First published app.",
-    description: "A journaling app designed to record emotions and promote self-reflection through mood tracking and visualization.",
-    tags: ["Frontend", "App", "Emotion", "Vue"],
-    icon: "📝",
-    color: "#ff6b6b"
-  },
-  {
-    date: "2024-12-03",
-    title: "React Forum Template / GAN-CNN-Image-Fix / ChatterLink",
-    repo: [
-      "https://github.com/PStarH/react-forum-template",
-      "https://github.com/PStarH/GAN-CNN-Image-Fix",
-      "https://github.com/PStarH/ChatterLink"
-    ],
-    summary: "A group of open-source projects made in early 2025.",
-    description: "Includes a React forum template for communities, an image restoration model using GAN/CNN, and a peer-to-peer encrypted chat app focusing on privacy.",
-    tags: ["Open Source", "React", "AI", "Privacy", "Template"],
-    period: "2025-01",
-    icon: "🚀",
-    color: "#95e1d3"
-  },
-  {
-    date: "2025-02",
-    title: "LLM Research and Applications",
-    repo: [
-      "https://github.com/PStarH/WebDeepResearch",
-      "https://github.com/PStarH/ModelMixPro",
-      "Private: Pasa-Paper-Chatbot"
-    ],
-    summary: "Projects focusing on automation, reasoning, and academic search using LLMs.",
-    description: "WebDeepResearch automates web exploration with source validation. ModelMixPro merges reasoning and execution models into a unified API. Pasa-Paper-Chatbot builds upon ByteDance's PaSa for academic paper analysis.",
-    tags: ["LLM", "Automation", "Web", "FastAPI", "Research"],
-    icon: "🔬",
-    color: "#a29bfe"
-  },
-  {
-    date: "2025-03",
-    title: "Open Source Contributions",
-    repo: {
-      "llama-index": "https://github.com/run-llama/llama_index",
-      "dify-docs": "https://github.com/langgenius/dify-docs-archived",
-      "ragflow": "https://github.com/infiniflow/ragflow"
+    {
+        date: "2024-10-17",
+        title: "MSTSearch",
+        repo: "https://github.com/PStarH/MSTSearch",
+        summary: "First project that achieved 50 stars and included both backend and frontend.",
+        description: "A search aggregation platform that crawls multiple search engines, ranks results using custom metrics, and leverages AI to generate summaries and answers. Built with a Python backend and Vue.js frontend.",
+        tags: ["AI", "Fullstack", "Search", "Python", "Vue"],
+        icon: "🔍",
+        color: "#667eea"
     },
-    summary: "First open-source PRs merged.",
-    description: "Contributed to llama-index (first merged PR), dify-docs, and ragflow, improving documentation and LLM integration. Marked the start of involvement in the global open-source ecosystem.",
-    tags: ["Open Source", "LLM", "Community"],
-    icon: "🌐",
-    color: "#fd79a8"
-  },
-  {
-    date: "2025-04",
-    title: "Second.me (Core Developer)",
-    repo: "https://github.com/mindverse/Second-Me",
-    summary: "First time being called a Core Developer.",
-    description: "Second.me lets users train an AI version of themselves using Hierarchical Memory Modeling (HMM) and the Me-Alignment Algorithm. It enables digital identity sharing across a decentralized network, with modules for AI roleplay and collaboration.",
-    tags: ["AI", "Identity", "Decentralization", "Core Developer"],
-    icon: "👤",
-    color: "#6c5ce7"
-  }
+    {
+        date: "2024-11-07",
+        title: "Personalized-LLM",
+        repo: "https://github.com/PStarH/Personalized-LLM",
+        summary: "First project working directly with LLMs.",
+        description: "A framework enhancing LLM accuracy and personalization using RAG, local data embedding, web crawling, and contextual analysis.",
+        tags: ["LLM", "RAG", "AI", "Personalization", "Chain-of-Thoughts"],
+        icon: "🤖",
+        color: "#764ba2"
+    },
+    {
+        date: "2024-11-18",
+        title: "PackLight & CalmWake",
+        repo: ["https://github.com/PStarH/PackLight", "https://github.com/PStarH/CalmWake"],
+        summary: "First self-built frontend projects.",
+        description: "PackLight is a packing list app built with React and TypeScript. CalmWake Clock provides a smooth, minimalistic clock interface with customizable options.",
+        tags: ["Frontend", "React", "TypeScript", "UI Design"],
+        icon: "💼",
+        color: "#f093fb"
+    },
+    {
+        date: "2024-11-27",
+        title: "My GBIF Biodiversity Project",
+        repo: "https://github.com/PStarH/my-gbif-project",
+        summary: "First project using a public API.",
+        description: "A web app using the GBIF API to explore biodiversity data, display random species, and allow database-wide searches.",
+        tags: ["API", "Frontend", "Biodiversity", "Data Visualization"],
+        icon: "🦋",
+        color: "#4ecdc4"
+    },
+    {
+        date: "2024-12-01",
+        title: "MoodNotes",
+        repo: "https://github.com/PStarH/MoodNotes",
+        summary: "First published app.",
+        description: "A journaling app designed to record emotions and promote self-reflection through mood tracking and visualization.",
+        tags: ["Frontend", "App", "Emotion", "Vue"],
+        icon: "📝",
+        color: "#ff6b6b"
+    },
+    {
+        date: "2024-12-03",
+        title: "React Forum Template / GAN-CNN-Image-Fix / ChatterLink",
+        repo: [
+            "https://github.com/PStarH/react-forum-template",
+            "https://github.com/PStarH/GAN-CNN-Image-Fix",
+            "https://github.com/PStarH/ChatterLink"
+        ],
+        summary: "A group of open-source projects made in early 2025.",
+        description: "Includes a React forum template for communities, an image restoration model using GAN/CNN, and a peer-to-peer encrypted chat app focusing on privacy.",
+        tags: ["Open Source", "React", "AI", "Privacy", "Template"],
+        period: "2025-01",
+        icon: "🚀",
+        color: "#95e1d3"
+    },
+    {
+        date: "2025-02",
+        title: "LLM Research and Applications",
+        repo: [
+            "https://github.com/PStarH/WebDeepResearch",
+            "https://github.com/PStarH/ModelMixPro",
+            "Private: Pasa-Paper-Chatbot"
+        ],
+        summary: "Projects focusing on automation, reasoning, and academic search using LLMs.",
+        description: "WebDeepResearch automates web exploration with source validation. ModelMixPro merges reasoning and execution models into a unified API. Pasa-Paper-Chatbot builds upon ByteDance's PaSa for academic paper analysis.",
+        tags: ["LLM", "Automation", "Web", "FastAPI", "Research"],
+        icon: "🔬",
+        color: "#a29bfe"
+    },
+    {
+        date: "2025-03",
+        title: "Open Source Contributions",
+        repo: {
+            "llama-index": "https://github.com/run-llama/llama_index",
+            "dify-docs": "https://github.com/langgenius/dify-docs-archived",
+            "ragflow": "https://github.com/infiniflow/ragflow"
+        },
+        summary: "First open-source PRs merged.",
+        description: "Contributed to llama-index (first merged PR), dify-docs, and ragflow, improving documentation and LLM integration. Marked the start of involvement in the global open-source ecosystem.",
+        tags: ["Open Source", "LLM", "Community"],
+        icon: "🌐",
+        color: "#fd79a8"
+    },
+    {
+        date: "2025-04",
+        title: "Second.me (Core Developer)",
+        repo: "https://github.com/mindverse/Second-Me",
+        summary: "First time being called a Core Developer.",
+        description: "Second.me lets users train an AI version of themselves using Hierarchical Memory Modeling (HMM) and the Me-Alignment Algorithm. It enables digital identity sharing across a decentralized network, with modules for AI roleplay and collaboration.",
+        tags: ["AI", "Identity", "Decentralization", "Core Developer"],
+        icon: "👤",
+        color: "#6c5ce7"
+    }
 ]);
 
 // 判断项目有多个链接
 const isMultipleRepos = (repo) => {
-  return Array.isArray(repo) || (typeof repo === 'object' && !Array.isArray(repo))
+    return Array.isArray(repo) || (typeof repo === 'object' && !Array.isArray(repo))
 }
 
 // 获取项目链接数组
 const getRepoLinks = (repo) => {
-  if (Array.isArray(repo)) {
-    return repo.map((link, index) => ({
-      url: link,
-      name: link.includes('Private') ? link : `Project ${index + 1}`
-    }))
-  } else if (typeof repo === 'object') {
-    return Object.entries(repo).map(([name, url]) => ({ name, url }))
-  }
-  return [{ url: repo, name: 'View Project' }]
+    if (Array.isArray(repo)) {
+        return repo.map((link, index) => ({
+            url: link,
+            name: link.includes('Private') ? link : `Project ${index + 1}`
+        }))
+    } else if (typeof repo === 'object') {
+        return Object.entries(repo).map(([name, url]) => ({ name, url }))
+    }
+    return [{ url: repo, name: 'View Project' }]
 }
 
 // 提取项目名称从链接
 const extractProjectName = (url) => {
-  if (url.includes('Private:')) {
-    return url.replace('Private:', '').trim()
-  }
-  const match = url.match(/github\.com\/[^\/]+\/([^\/]+)/)
-  return match ? match[1] : 'Project'
+    if (url.includes('Private:')) {
+        return url.replace('Private:', '').trim()
+    }
+    const match = url.match(/github\.com\/[^\/]+\/([^\/]+)/)
+    return match ? match[1] : 'Project'
 }
 
 let ctx;
@@ -517,11 +499,10 @@ onBeforeUnmount(() => {
     bottom: 0;
     width: 3px;
     background: linear-gradient(180deg,
-        transparent 0%,
-        rgba(102, 126, 234, 0.8) 5%,
-        rgba(102, 126, 234, 0.8) 95%,
-        transparent 100%
-    );
+            transparent 0%,
+            rgba(102, 126, 234, 0.8) 5%,
+            rgba(102, 126, 234, 0.8) 95%,
+            transparent 100%);
     box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
     transform: translateX(-50%);
 }
@@ -551,12 +532,16 @@ onBeforeUnmount(() => {
 
 /* Walking animation keyframes */
 @keyframes walk {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: rotate(0deg);
     }
+
     25% {
         transform: rotate(20deg);
     }
+
     75% {
         transform: rotate(-20deg);
     }
@@ -603,7 +588,7 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: center;
     box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.3),
-                0 0 0 8px rgba(255, 255, 255, 0.1);
+        0 0 0 8px rgba(255, 255, 255, 0.1);
     z-index: 10;
     transition: all 0.3s ease;
 }
@@ -611,8 +596,8 @@ onBeforeUnmount(() => {
 .timeline-dot:hover {
     transform: scale(1.2);
     box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.3),
-                0 0 0 12px rgba(255, 255, 255, 0.2),
-                0 0 30px currentColor;
+        0 0 0 12px rgba(255, 255, 255, 0.2),
+        0 0 30px currentColor;
 }
 
 .timeline-dot-icon {
@@ -651,8 +636,8 @@ onBeforeUnmount(() => {
     right: 0;
     bottom: 0;
     background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-                rgba(255, 255, 255, 0.1) 0%,
-                transparent 50%);
+            rgba(255, 255, 255, 0.1) 0%,
+            transparent 50%);
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
