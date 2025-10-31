@@ -371,7 +371,7 @@ function scrollToFirstThought() {
                             </n-card>
                             <div style="display: flex; align-items: center;">
                                 <n-statistic style="font-weight: bold; padding-right: 1.75rem;" label="Time Complexity">
-                                    <img style="width: 100%" src="/website/images/time_complexity_nw.png" 
+                                    <img style="width: 100%" src="/website/images/time_complexity.png"
                                         alt="O(n*W)">
                                 </n-statistic>
                             </div>
