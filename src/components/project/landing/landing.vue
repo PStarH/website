@@ -41,7 +41,9 @@
                             decision-making.
                         </n-text>
                     </div>
-                    <div class="tag mcts">Monte Carlo</div>
+                    <div class="tags">
+                        <div class="tag mcts">Monte Carlo</div>
+                    </div>
                 </div>
             </n-gi>
             <n-gi>
@@ -455,9 +457,11 @@ onMounted(() => {
                 y: 50,
                 duration: 0.6,
                 stagger: 0.15,
+                clearProps: 'all',
                 scrollTrigger: {
                     trigger: projectsGrid.value.$el,
-                    start: 'top 80%'
+                    start: 'top 80%',
+                    toggleActions: 'play none none none'
                 }
             });
         }
@@ -1033,10 +1037,9 @@ onBeforeUnmount(() => {
         padding-left: 0;
     }
 }
-</style>
 
 /* 修复explained algorithm部分卡片垂直位置不一致 */
-.projects-grid .n-gi {
+.projects-grid :deep(.n-gi) {
     display: flex;
     flex-direction: column;
 }
@@ -1048,3 +1051,4 @@ onBeforeUnmount(() => {
     justify-content: space-between;
     height: 100%;
 }
+</style>
