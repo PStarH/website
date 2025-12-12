@@ -2280,7 +2280,6 @@ const createStarEffect = (event, techName) => {
 /* Ensure each section takes full viewport height - but don't force display */
 .content-sections > * {
   min-height: 100vh;
-  padding: 48px 0;
 }
 
 /* Scroll down indicator animation */

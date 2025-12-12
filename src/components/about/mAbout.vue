@@ -4,6 +4,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useRouter } from 'vue-router'
 import Lenis from 'lenis'
+import Gramophone from './Gramophone.vue'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -187,6 +188,17 @@ onMounted(async () => {
     stagger: 0.2,
     scrollTrigger: {
       trigger: '.short-self',
+      start: 'top 70%',
+    }
+  })
+
+  // Animate gramophone
+  gsap.from('.gramophone-section', {
+    opacity: 0,
+    y: 30,
+    duration: 1,
+    scrollTrigger: {
+      trigger: '.gramophone-section',
       start: 'top 70%',
     }
   })
@@ -405,6 +417,11 @@ const navigateToProjects = () => {
         </div>
       </section>
 
+      <!-- Gramophone Visual -->
+      <section class="gramophone-section section-container">
+        <Gramophone />
+      </section>
+
       <!-- 10. CTA Section -->
       <section class="cta-section section-container">
         <div class="cta-buttons">
@@ -436,6 +453,7 @@ const navigateToProjects = () => {
   background: v-bind("isDarkMode ? 'rgba(0, 0, 0, 0.95)' : 'rgba(255, 255, 255, 0.95)'");
   color: v-bind("isDarkMode ? '#e8e8e8' : '#2c3e50'");
   overflow-x: hidden;
+  padding-bottom: 150px; /* Ensure footer is reachable */
 }
 
 // Hero Section
@@ -592,6 +610,15 @@ const navigateToProjects = () => {
     padding-top: 25px;
     border-top: 1px solid v-bind("isDarkMode ? 'rgba(0, 140, 255, 0.2)' : 'rgba(0, 140, 255, 0.15)'");
   }
+}
+
+// Gramophone Section
+.gramophone-section {
+  padding: 30px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 }
 
 // Section Title

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import Lenis from 'lenis'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Gramophone from './Gramophone.vue'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -182,6 +183,19 @@ onMounted(async () => {
       }
     )
   }
+
+  // Gramophone section - fade in
+  gsap.from('.gramophone-section', {
+    scrollTrigger: {
+      trigger: '.gramophone-section',
+      start: 'top 85%',
+      toggleActions: 'play none none none'
+    },
+    opacity: 0,
+    y: 30,
+    duration: 1,
+    ease: 'power2.out'
+  })
 
   // 4. Core narrative - flowing line by line animation
   const narrativeTexts = gsap.utils.toArray('.narrative-text')
@@ -545,6 +559,11 @@ const navigateToProjects = () => {
         </div>
       </section>
 
+      <!-- Gramophone Visual -->
+      <section class="gramophone-section section-container">
+        <Gramophone />
+      </section>
+
       <!-- 9. CTA Section -->
       <section class="cta-section section-container">
         <div class="cta-buttons">
@@ -575,6 +594,7 @@ const navigateToProjects = () => {
   color: v-bind("isDarkMode ? '#f1f5f9' : '#1e293b'");
   overflow-x: hidden;
   position: relative;
+  padding-bottom: 150px; /* Ensure footer is reachable */
 
   // 顶部渐变过渡
   &::before {
@@ -759,6 +779,15 @@ const navigateToProjects = () => {
       transform: translateX(3px);
     }
   }
+}
+
+// Gramophone Section
+.gramophone-section {
+  padding: 40px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 }
 
 // Core Narrative Section
