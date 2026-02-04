@@ -1,7 +1,7 @@
 <template>
-  <section class="awards-section">
+  <section class="awards-section" role="main" aria-label="Awards and Achievements">
     <!-- Background animated spheres -->
-    <div class="background-spheres">
+    <div class="background-spheres" aria-hidden="true">
       <div class="sphere sphere-1"></div>
       <div class="sphere sphere-2"></div>
       <div class="sphere sphere-3"></div>
@@ -103,7 +103,7 @@
 
         <!-- Awards Title -->
         <div class="title-container">
-          <h2 class="section-title">Awards</h2>
+          <h2 class="section-title" id="awards-title">Awards</h2>
         </div>
 
         <!-- Right award -->
@@ -546,6 +546,22 @@ const awards = ref([
 
   .award-card:hover {
     transform: translateY(-8px) scale(1.01);
+  }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .sphere {
+    animation: none;
+  }
+  
+  .award-card {
+    animation: none;
+  }
+  
+  .award-card:hover {
+    transform: none;
+    transition: box-shadow 0.3s ease;
   }
 }
 </style>

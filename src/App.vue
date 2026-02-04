@@ -33,9 +33,12 @@ onMounted(() => {
   document.fonts.ready.then(() => {
     gsap.registerPlugin(Draggable, ScrollTrigger, ScrollSmoother);
 
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
     const smoother = ScrollSmoother.create({
-      smooth: 2,
-      smoothTouch: 0.1,
+      smooth: prefersReducedMotion ? 0 : 2,
+      smoothTouch: prefersReducedMotion ? 0 : 0.1,
       normalizeScroll: true
     });
 
