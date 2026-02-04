@@ -1,59 +1,42 @@
-# My First Website Project
+# Personal Website
 
-This is my first website project, containing the frontend-only implementation. The project is built using Vue3 and related technologies, and I have also set up an automated deployment script. Every time I push changes to the repository, GitHub Actions automatically runs the script to deploy the project. The deployed content is available via GitHub Pages.
+This is my personal website, built with Vue 3 and a modern frontend tech stack. The site features a modular structure, clean UI, and automated deployment.
 
 ## Tech Stack
 
-- **Vue 3**: Used for building reactive and modular user interfaces.
-- **Vue Router**: Handles the routing for the multi-page application.
-- **Vuex**: State management for sharing data between components.
-- **Naive UI**: A modern and elegant UI component library for Vue.
-- **JavaScript**: Core language for handling the logic and functionality.
+- **Vue 3**: Modern JavaScript framework for building interactive user interfaces.
+- **Vue Router**: Seamless client-side navigation and routing.
+- **Vuex**: Centralized state management for better data handling.
+- **Naive UI**: Beautiful, customizable Vue components.
+- **JavaScript**: The core language driving all functionality.
 
 ## Project Structure
 
 ```bash
-├── public            # Public assets
+├── public            # Static assets
 ├── src               # Source code
-│   ├── assets        # Static resources used in the project
+│   ├── assets        # Images and resources
 │   ├── components    # Reusable Vue components
-│   ├── router        # Routing configuration
-│   ├── store         # Vuex store for state management
-│   ├── views         # Page components
-│   ├── App.vue       # Root component
-│   ├── main.js       # Entry file
-└── index.html        # HTML template
+│   ├── router        # Route configuration
+│   ├── store         # State management modules
+│   ├── views         # Page-level components
+│   ├── App.vue       # Root Vue component
+│   ├── main.js       # Application entry point
+└── index.html        # Main HTML template
 ```
 
 ## Automated Deployment
 
-The project integrates GitHub Actions for automatic deployment. Every time code is pushed to the main branch, the following process is triggered:
+GitHub Actions ensures continuous and automatic deployment. Every push to the main branch will:
 
-1. Install dependencies: `npm install`
-2. Build the project: `npm run build`
-3. Deploy the built files from the `dist` directory to GitHub Pages.
+1. Install dependencies.
+2. Build the production assets.
+3. Deploy from the `dist` directory to GitHub Pages.
 
-## View the Website
+## Website
 
-You can access the deployed website via the following link: [Click here](https://yehruei.github.io/Magnet---Build-Your-First-Website)
+Visit my website here: [https://panxinghan.hillcodex.com/#/](https://panxinghan.hillcodex.com/#/)
 
-## How to Run the Project
+---
 
-Clone the repository:
-
-```bash
-git clone https://github.com/yehruei/Magnet---Build-Your-First-Website.git
-```
-
-Navigate to the project directory and install dependencies:
-
-```bash
-cd Magnet---Build-Your-First-Website
-npm install
-```
-
-Run the project locally:
-
-```bash
-npm run dev
-```
+Thanks for stopping by!
